@@ -1,0 +1,373 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    /* Modern, clean Thai + Latin font stack: Plus Jakarta Sans for numbers & English, Prompt / Kanit for Thai */
+    font-family: 'Plus Jakarta Sans', 'Prompt', 'Kanit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    scroll-behavior: smooth;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Kanit', 'Plus Jakarta Sans', 'Prompt', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+.font-display {
+  font-family: 'Kanit', 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-prompt {
+  font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-comic {
+  font-family: 'Kodchasan', 'Prompt', cursive, sans-serif;
+}
+
+.font-mono {
+  font-family: 'Plus Jakarta Sans', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Brand Color Utility Variables */
+:root {
+  --color-primary-purple: #7B3FC6;
+  --color-deep-purple: #54239A;
+  --color-light-purple: #EEE4FA;
+  --color-yellow: #FFC928;
+  --color-gold: #F5B800;
+  --color-green: #2EAD62;
+  --color-light-green: #DFF5E8;
+  --color-coral: #EF5350;
+  --color-sky-blue: #45B9EA;
+  --color-sea-blue: #169BD5;
+  --color-dark: #17151C;
+  --color-dark-purple-black: #24172F;
+  --color-off-white: #FAF9FC;
+  --color-soft-gray: #F3F1F7;
+  --color-text-gray: #6F6878;
+}
+
+/* Custom Playful Keyframe Animations */
+@keyframes bounceSubtle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+@keyframes bounceGentle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-1.5deg);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes dashScroll {
+  to {
+    stroke-dashoffset: -44;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(4px);
+  }
+}
+
+@keyframes waveMotion {
+  0%, 100% {
+    transform: translateX(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-15px) scaleY(1.05);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounceSubtle 2.4s ease-in-out infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounceGentle 1.8s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.8s ease-in-out infinite;
+}
+
+.animate-dash {
+  animation: dashScroll 2s linear infinite;
+}
+
+.animate-float {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-wave {
+  animation: waveMotion 5s ease-in-out infinite;
+}
+
+/* Custom leaflet map controls & popup styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 20px !important;
+  box-shadow: 0 20px 40px -10px rgba(84, 35, 154, 0.22) !important;
+  border: 2px solid #EEE4FA;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.5;
+}
+
+.leaflet-container {
+  font-family: 'Plus Jakarta Sans', 'Prompt', sans-serif !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF9FC;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #150D20;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D2E5;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #3B2158;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7B3FC6;
+}
+
+/* ============================================================ */
+/* DARK MODE HIGH-CONTRAST AND READABILITY ENHANCEMENTS */
+/* ============================================================ */
+html.dark {
+  background-color: #0E0817;
+  color: #F3F0F9;
+}
+
+html.dark body {
+  background-color: #0E0817;
+  color: #F3F0F9;
+}
+
+/* High contrast dark section styling */
+html.dark section {
+  background-color: transparent;
+}
+
+html.dark #inspiration {
+  background-color: #120A1E !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #distances {
+  background: linear-gradient(to bottom, #130B21, #0E0817, #130B21) !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #merch-showcase {
+  background-color: #11091C !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #highlights {
+  background-color: #0E0817 !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #routes {
+  background: linear-gradient(to bottom, #130B21, #0E0817, #130B21) !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #hotels {
+  background-color: #120A1E !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #leaderboard {
+  background-color: #0E0817 !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #weather-forecast {
+  background: linear-gradient(to bottom, #130B21, #0E0817, #130B21) !important;
+  border-color: #2D1845 !important;
+}
+
+html.dark #runner-checklist {
+  background-color: #120A1E !important;
+}
+
+html.dark #faq {
+  background-color: #0E0817 !important;
+  border-color: #2D1845 !important;
+}
+
+/* Dark mode card contrast overrides */
+html.dark .bg-white {
+  background-color: #180E28 !important;
+  color: #F3F0F9 !important;
+}
+
+html.dark .bg-white\/95 {
+  background-color: rgba(24, 14, 40, 0.95) !important;
+}
+
+html.dark .bg-\[\#FFFFFF\] {
+  background-color: #160D24 !important;
+}
+
+html.dark .bg-\[\#FAF8FD\],
+html.dark .bg-\[\#FAF7FD\],
+html.dark .bg-\[\#FAF9FC\],
+html.dark .bg-purple-50,
+html.dark .bg-purple-50\/60,
+html.dark .bg-purple-50\/70,
+html.dark .bg-purple-50\/80 {
+  background-color: #201235 !important;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-gray-100 {
+  background-color: #24143D !important;
+}
+
+/* Text readability in dark mode */
+html.dark .text-\[\#1F1035\],
+html.dark .text-\[\#24172F\],
+html.dark .text-\[\#261042\],
+html.dark .text-\[\#17151C\],
+html.dark .text-gray-900,
+html.dark .text-gray-800 {
+  color: #F8F5FE !important;
+}
+
+html.dark .text-gray-700,
+html.dark .text-gray-600 {
+  color: #D4CCE0 !important;
+}
+
+html.dark .text-gray-500,
+html.dark .text-gray-400 {
+  color: #A69BB5 !important;
+}
+
+/* Borders in dark mode */
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-purple-100,
+html.dark .border-purple-100\/60,
+html.dark .border-purple-100\/70,
+html.dark .border-purple-100\/80,
+html.dark .border-purple-200 {
+  border-color: #341A52 !important;
+}
+
+/* Leaflet dark mode contrast */
+html.dark .leaflet-tile-pane {
+  filter: brightness(0.85) contrast(1.15) !important;
+}
+
+/* Printer-Friendly PDF Optimization Styles */
+@media print {
+  @page {
+    margin: 12mm 15mm;
+    size: A4 portrait;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide distracting web elements when printing schedule modal / printable schedule */
+  nav,
+  footer,
+  #hero,
+  #inspiration,
+  #distances,
+  #highlights,
+  #hotels,
+  #leaderboard,
+  #runner-checklist,
+  #faq,
+  .print-hide,
+  button:not(.print-keep) {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Ensure schedule card and timeline looks crisp on paper */
+  .printable-schedule-sheet {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .page-break-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
+
+/* CHANG SUEK RUN — playful dog-run polish */
+@keyframes pawWiggle {
+  0%, 100% { transform: rotate(-5deg) translateY(0); }
+  50% { transform: rotate(5deg) translateY(-5px); }
+}
+@keyframes dogTailWag {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(12deg); }
+}
+.dog-run-card {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.dog-run-card:hover {
+  transform: translateY(-4px) rotate(-0.25deg);
+  box-shadow: 0 16px 36px rgba(123, 63, 198, 0.13);
+}
+.paw-wiggle { display: inline-block; animation: pawWiggle 2.2s ease-in-out infinite; transform-origin: 50% 70%; }
+.dog-tail-wag { display: inline-block; animation: dogTailWag 0.65s ease-in-out infinite; transform-origin: 15% 85%; }
+@media (prefers-reduced-motion: reduce) {
+  .paw-wiggle, .dog-tail-wag { animation: none !important; }
+  .dog-run-card { transition: none !important; }
+}
