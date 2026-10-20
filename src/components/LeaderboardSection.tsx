@@ -27,7 +27,7 @@ interface CommunityTeam {
 
 export const LeaderboardSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'individual' | 'community'>('individual');
-  const [distanceFilter, setDistanceFilter] = useState<'all' | '10km' | '5km' | '3km'>('all');
+  const [distanceFilter, setDistanceFilter] = useState<'all' | '10km' | '5km' | '3km' | '1km'>('all');
   const [cheerCounts, setCheerCounts] = useState<{ [key: string]: number }>({});
   const [cheeredIds, setCheeredIds] = useState<{ [key: string]: boolean }>({});
 
@@ -210,9 +210,10 @@ export const LeaderboardSection: React.FC = () => {
             <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
               {[
                 { id: 'all', label: 'ทุกระยะ' },
-                { id: '10km', label: '10K Challenge Run' },
-                { id: '5km', label: '5K Healthy Run' },
-                { id: '3km', label: '3K Fun Run' },
+                { id: '10km', label: '10K' },
+                { id: '5km', label: '5K' },
+                { id: '3km', label: 'Dog 3K 🐾' },
+                { id: '1km', label: 'Dog 1K 🐾' },
               ].map((filter) => (
                 <button
                   key={filter.id}

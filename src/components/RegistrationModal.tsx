@@ -1,50 +1,137 @@
-import React, { useState } from 'react';
-import { X, Check, Award, Dog, Heart, Calendar, MapPin, Download, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Check, Minus, Plus, UserPlus } from 'lucide-react';
 import { RouteId } from '../types';
-import { ElephantCharacter } from './brand/BrandCharacters';
+import { DogCharacter } from './brand/BrandCharacters';
+import { PawIcon } from './brand/DogDecor';
 import { saveRunnerProfile } from '../utils/runnerStorage';
+import {
+  ticketCategories,
+  ticketById,
+  isDogCategory,
+  calcTicketTotal,
+  formatBaht,
+} from '../data/eventData';
 
 interface RegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialRoute?: RouteId;
+  initialExtraPeople?: number;
+  initialExtraDogs?: number;
   onRegistrationSuccess?: () => void;
 }
+
+const accent: Record<RouteId, string> = {
+  '10km': '#C9A6F5',
+  '5km': '#FFD84D',
+  '3km': '#7FDDB0',
+  '1km': '#FFA66E',
+};
+
+const inputCls =
+  'w-full px-4 py-2.5 rounded-2xl border-2 border-[#2A1450]/30 bg-white text-sm text-[#2A1450] placeholder-[#2A1450]/40 focus:outline-none focus:border-[#7B3FC6] focus:ring-4 focus:ring-[#7B3FC6]/15';
+const labelCls = 'block text-xs font-bold text-[#2A1450] mb-1';
+
+const Stepper: React.FC<{
+  label: string;
+  hint: string;
+  value: number;
+  onChange: (n: number) => void;
+  icon: React.ReactNode;
+  max?: number;
+}> = ({ label, hint, value, onChange, icon, max = 9 }) => (
+  <div className="flex items-center justify-between gap-3 py-2.5">
+    <div className="flex items-center gap-3 min-w-0">
+      <span className="w-10 h-10 rounded-xl bg-white border-2 border-[#2A1450] flex items-center justify-center shrink-0">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <div className="text-sm font-bold text-[#2A1450]">{label}</div>
+        <div className="text-xs font-semibold text-[#6B5A85]">{hint}</div>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 shrink-0">
+      <button
+        type="button"
+        aria-label={`ลด${label}`}
+        onClick={() => onChange(Math.max(0, value - 1))}
+        disabled={value === 0}
+        className="w-9 h-9 rounded-full border-2 border-[#2A1450] bg-white flex items-center justify-center disabled:opacity-30 hover:bg-[#FFE48A] active:scale-90 transition"
+      >
+        <Minus className="w-4 h-4" />
+      </button>
+      <span key={value} className="w-6 text-center font-display text-xl font-bold animate-pop">
+        {value}
+      </span>
+      <button
+        type="button"
+        aria-label={`เพิ่ม${label}`}
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
+        className="w-9 h-9 rounded-full border-2 border-[#2A1450] bg-[#FFC928] flex items-center justify-center disabled:opacity-30 hover:bg-[#FFD84D] active:scale-90 transition"
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+);
 
 export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   isOpen,
   onClose,
-  initialRoute = '3km',
+  initialRoute = '5km',
+  initialExtraPeople = 0,
+  initialExtraDogs = 0,
   onRegistrationSuccess,
 }) => {
   const [selectedRoute, setSelectedRoute] = useState<RouteId>(initialRoute);
-  const [selectedTicket, setSelectedTicket] = useState('5km-person');
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [extraPeople, setExtraPeople] = useState(0);
+  const [extraDogs, setExtraDogs] = useState(0);
 
-  // Form states
   const [fullName, setFullName] = useState('');
   const [idCardOrPassport, setIdCardOrPassport] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
   const [shirtSize, setShirtSize] = useState('L');
-  const [runningWithDog, setRunningWithDog] = useState(false);
+  const [dogName, setDogName] = useState('');
   const [dogBreed, setDogBreed] = useState('');
-  const [bibNumber, setBibNumber] = useState('27088');
-  const [submitted, setSubmitted] = useState(false);
+  const [extraRunnerNames, setExtraRunnerNames] = useState('');
+  const [bibNumber, setBibNumber] = useState('');
+
+  // Follow the ticket the visitor clicked on the page each time the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedRoute(initialRoute);
+      setStep(1);
+      setExtraPeople(initialExtraPeople);
+      setExtraDogs(initialExtraDogs);
+    }
+  }, [isOpen, initialRoute, initialExtraPeople, initialExtraDogs]);
 
   if (!isOpen) return null;
 
+  const ticket = ticketById(selectedRoute);
+  const isDog = isDogCategory(selectedRoute);
+  const total = calcTicketTotal(selectedRoute, extraPeople, extraDogs);
+  const dogCount = isDog ? 1 + extraDogs : 0;
+  const peopleCount = isDog ? 1 + extraPeople : 1;
+
+  const pickTicket = (id: RouteId) => {
+    setSelectedRoute(id);
+    if (!isDogCategory(id)) {
+      setExtraPeople(0);
+      setExtraDogs(0);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // generate random BIB
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const prefix = selectedRoute === '10km' ? '10' : selectedRoute === '5km' ? '05' : '03';
-    const generatedBib = `${prefix}${randomNum}`;
+    const prefix = { '10km': '10', '5km': '05', '3km': '03', '1km': '01' }[selectedRoute];
+    const generatedBib = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
     setBibNumber(generatedBib);
 
-    // Save to Runner Storage (localStorage)
-    const routeInfo = getRouteDetails(selectedRoute);
     saveRunnerProfile({
       fullName: fullName || 'นักวิ่งช้างศึก',
       idCardOrPassport,
@@ -52,340 +139,285 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       email,
       emergencyPhone,
       routeId: selectedRoute,
-      routeName: routeInfo.title,
+      routeName: ticket.name,
       bibNumber: generatedBib,
       shirtSize,
-      runningWithDog,
+      runningWithDog: isDog,
       dogBreed,
+      dogName,
+      extraPeople,
+      extraDogs,
+      extraRunnerNames,
+      totalPrice: total,
       registrationStatus: 'REGISTERED',
       createdAt: new Date().toISOString(),
     });
 
     setStep(3);
-    setSubmitted(true);
-    if (onRegistrationSuccess) {
-      onRegistrationSuccess();
-    }
+    onRegistrationSuccess?.();
   };
 
-  const getRouteDetails = (id: RouteId) => {
-    switch (id) {
-      case '10km':
-        return {
-          title: '10 KM WAR DOG TRAIL',
-          color: '#7B3FC6',
-          badgeBg: 'bg-[#EEE4FA] text-[#54239A]',
-          price: '890 บาท',
-          survey: 'รังวัดจริง 10.52 กม.',
-        };
-      case '5km':
-        return {
-          title: '5 KM CHALLENGE RUN',
-          color: '#EF5350',
-          badgeBg: 'bg-red-50 text-red-600',
-          price: '690 บาท',
-          survey: 'รังวัดจริง 5.20 กม.',
-        };
-      case '3km':
-      default:
-        return {
-          title: '3 KM FUN RUN',
-          color: '#2EAD62',
-          badgeBg: 'bg-[#DFF5E8] text-[#2EAD62]',
-          price: '890 บาท',
-          survey: 'รังวัดจริง 4.08 กม.',
-        };
-    }
-  };
+  const steps = ['เลือกบัตร', 'ข้อมูลนักวิ่ง', 'รับ BIB'];
 
-  const currentDetails = getRouteDetails(selectedRoute);
+  const renderTicketOption = (id: RouteId) => {
+    const t = ticketById(id);
+    const on = selectedRoute === id;
+    return (
+      <button
+        key={id}
+        type="button"
+        onClick={() => pickTicket(id)}
+        aria-pressed={on}
+        className={`text-left p-3.5 rounded-2xl border-[3px] transition-all ${
+          on
+            ? 'border-[#2A1450] shadow-[3px_4px_0_#2A1450] -translate-y-0.5'
+            : 'border-[#2A1450]/25 hover:border-[#2A1450]/60'
+        }`}
+        style={{ background: on ? accent[id] : '#fff' }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-display text-3xl font-bold leading-none text-[#2A1450]">{t.distanceLabel}</span>
+          <span className="text-2xl" aria-hidden="true">{t.emoji}</span>
+        </div>
+        <div className="text-xs font-semibold text-[#2A1450]/80 mt-1">{t.baseLabel}</div>
+        <div className="font-display text-lg font-bold text-[#2A1450] mt-0.5">
+          {t.basePrice.toLocaleString('th-TH')} บาท
+        </div>
+      </button>
+    );
+  };
 
   return (
-    <div className="fixed inset-0 z-[9990] flex items-center justify-center p-4 bg-[#17151C]/70 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-xl my-8 bg-[#FFFFFF] dark:bg-[#180E28] text-[#17151C] dark:text-[#F3F0F9] rounded-3xl shadow-2xl border border-[#EEE4FA] dark:border-[#3B2158] overflow-hidden">
-        {/* Modal Header */}
-        <div className="relative px-6 py-5 bg-gradient-to-r from-[#7B3FC6] via-[#54239A] to-[#24172F] text-white flex items-center justify-between">
+    <div className="fixed inset-0 z-[9990] flex items-center justify-center p-4 bg-[#2A1450]/70 backdrop-blur-sm overflow-y-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="สมัครเข้าร่วมงานวิ่ง"
+        className="relative w-full max-w-xl my-8 bg-[#FFFDF5] text-[#2A1450] sticker overflow-hidden animate-pop"
+      >
+        {/* Header */}
+        <div className="relative px-6 py-4 bg-[#FFC928] border-b-[3px] border-[#2A1450] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20">
-              <ElephantCharacter size={32} isAnimated={false} showBib={false} />
+            <div className="w-12 h-12 rounded-2xl bg-white border-[3px] border-[#2A1450] flex items-center justify-center overflow-hidden">
+              <DogCharacter size={44} isAnimated={false} />
             </div>
             <div>
-              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#FFC928]">
-                CHANG SUEK RUN 2027
-              </span>
-              <h2 className="text-lg font-black leading-tight">
-                {step === 3 ? '🎉 ลงทะเบียนสำเร็จ!' : 'แบบฟอร์มสมัครเข้าร่วมแข่งขัน'}
+              <div className="text-xs font-bold text-[#7B3FC6]">CHANG SUEK RUN 2027</div>
+              <h2 className="text-lg font-bold leading-tight">
+                {step === 3 ? 'สมัครสำเร็จแล้ว!' : 'สมัครเข้าร่วมงานวิ่ง'}
               </h2>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+            aria-label="ปิด"
+            className="w-9 h-9 rounded-full bg-white border-2 border-[#2A1450] flex items-center justify-center hover:rotate-90 transition-transform"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Stepper Indicator */}
-        <div className="flex items-center justify-between px-6 py-3 bg-[#FAF9FC] dark:bg-[#1E1233] border-b border-[#EEE4FA] dark:border-[#3B2158] text-xs font-bold text-[#6F6878] dark:text-[#A69BB5]">
-          <div className={`flex items-center gap-2 ${step >= 1 ? 'text-[#7B3FC6] dark:text-[#C59BFF]' : ''}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-[#7B3FC6] text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>1</span>
-            <span>เลือกระยะวิ่ง</span>
-          </div>
-          <div className="h-0.5 w-8 bg-[#E5E0EE] dark:bg-[#3B2158]" />
-          <div className={`flex items-center gap-2 ${step >= 2 ? 'text-[#7B3FC6] dark:text-[#C59BFF]' : ''}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-[#7B3FC6] text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>2</span>
-            <span>ข้อมูลนักวิ่ง</span>
-          </div>
-          <div className="h-0.5 w-8 bg-[#E5E0EE] dark:bg-[#3B2158]" />
-          <div className={`flex items-center gap-2 ${step >= 3 ? 'text-[#2EAD62]' : ''}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-[#2EAD62] text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>3</span>
-            <span>บัตรวิ่ง (BIB)</span>
-          </div>
+        {/* Stepper */}
+        <div className="flex items-center justify-center gap-2 px-6 py-3 border-b-2 border-dashed border-[#2A1450]/25 text-xs font-bold">
+          {steps.map((label, i) => {
+            const n = i + 1;
+            const done = step > n;
+            const active = step === n;
+            return (
+              <React.Fragment key={label}>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`w-6 h-6 rounded-full border-2 border-[#2A1450] flex items-center justify-center ${
+                      done ? 'bg-[#6FD9A8]' : active ? 'bg-[#FFC928]' : 'bg-white text-[#2A1450]/40'
+                    }`}
+                  >
+                    {done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : n}
+                  </span>
+                  <span className={active || done ? '' : 'text-[#2A1450]/40'}>{label}</span>
+                </div>
+                {i < steps.length - 1 && <span className="w-6 h-0.5 bg-[#2A1450]/25" />}
+              </React.Fragment>
+            );
+          })}
         </div>
 
-        {/* Step 1: Select Distance */}
+        {/* STEP 1 */}
         {step === 1 && (
           <div className="p-6">
-            <h3 className="text-base font-bold text-[#17151C] mb-4">
-              เลือกบัตรวิ่งที่ใช่สำหรับคุณและน้องหมา 🐾
-            </h3>
-
-            <p className="text-xs text-[#6F6878] mb-4">หมวดบุคคลทั่วไป 5 / 10 กม. • หมวดวิ่งกับสัตว์เลี้ยง 1 / 3 กม.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              {[
-                { id: '5km-person', route: '5km' as RouteId, title: '5 กม. บุคคลทั่วไป', desc: 'สำหรับนักวิ่งเดี่ยว ระยะ 5 กิโลเมตร', price: '690 บาท', note: 'ราคาปกติ 790 บาท', emoji: '🏃', color: 'border-[#7B3FC6] bg-[#EEE4FA]/50' },
-                { id: '10km-person', route: '10km' as RouteId, title: '10 กม. บุคคลทั่วไป', desc: 'สำหรับนักวิ่งเดี่ยว ระยะ 10 กิโลเมตร', price: '890 บาท', note: 'บุคคลทั่วไป', emoji: '🏃‍♀️', color: 'border-[#F2C94C] bg-[#FFF8D9]/60' },
-                { id: 'dog1-pair', route: '3km' as RouteId, title: 'Dog 1 กม. • คู่หู 1:1', desc: 'ผู้ดูแล 1 คน + น้องหมา 1 ตัว', price: '890 บาท', note: 'DOG RUN', emoji: '🐕', color: 'border-[#FF9A76] bg-[#FFF0E9]/70' },
-                { id: 'dog3-pair', route: '3km' as RouteId, title: 'Dog 3 กม. • คู่หู 1:1', desc: 'ผู้ดูแล 1 คน + น้องหมา 1 ตัว', price: '890 บาท', note: 'DOG RUN', emoji: '🐕‍🦺', color: 'border-[#FF9A76] bg-[#FFF0E9]/70' },
-                { id: 'dog1-person', route: '3km' as RouteId, title: 'Dog 1 กม. • เพิ่มคน', desc: 'เพิ่มผู้ร่วมวิ่งในทีม', price: '+450 บาท/คน', note: 'ตัวเลือกเสริม', emoji: '👟', color: 'border-[#E5E0EE] bg-white' },
-                { id: 'dog1-dog', route: '3km' as RouteId, title: 'Dog 1 กม. • เพิ่มสุนัข', desc: 'เพิ่มสมาชิกสี่ขาในทีม', price: '+250 บาท/ตัว', note: 'ตัวเลือกเสริม', emoji: '🐾', color: 'border-[#E5E0EE] bg-white' },
-                { id: 'dog3-person', route: '3km' as RouteId, title: 'Dog 3 กม. • เพิ่มคน', desc: 'เพิ่มผู้ร่วมวิ่งในทีม', price: '+500 บาท/คน', note: 'ตัวเลือกเสริม', emoji: '👟', color: 'border-[#E5E0EE] bg-white' },
-                { id: 'dog3-dog', route: '3km' as RouteId, title: 'Dog 3 กม. • เพิ่มสุนัข', desc: 'เพิ่มสมาชิกสี่ขาในทีม', price: '+300 บาท/ตัว', note: 'ตัวเลือกเสริม', emoji: '🐾', color: 'border-[#E5E0EE] bg-white' },
-              ].map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => { setSelectedTicket(item.id); setSelectedRoute(item.route); }}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    selectedTicket === item.id
-                      ? 'bg-white border-[#8B43D7] ring-2 ring-offset-2 ring-[#7B3FC6] ring-offset-[#180E28] scale-[1.01] shadow-lg'
-                      : 'border-[#E2D8EA] bg-[#241432] hover:border-[#FF9A76] hover:bg-[#2B1740] dark:border-[#E2D8EA] dark:bg-[#241432] dark:hover:bg-[#2B1740]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`font-black text-sm sm:text-base ${selectedTicket === item.id ? 'text-[#241432]' : 'text-white dark:text-white'}`}><span className="mr-1.5">{item.emoji}</span>{item.title}</span>
-                    <span className={`font-extrabold text-sm whitespace-nowrap ${selectedTicket === item.id ? 'text-[#7430C3]' : 'text-[#B879FF] dark:text-[#B879FF]'}`}>{item.price}</span>
-                  </div>
-                  <p className={`text-xs mb-2 ${selectedTicket === item.id ? 'text-[#62566D]' : 'text-[#C9BED4] dark:text-[#C9BED4]'}`}>{item.desc}</p>
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border ${selectedTicket === item.id ? 'bg-[#F0E3FF] text-[#59258B] border-[#E3D0FA]' : 'bg-[#39254B] text-[#E7DDF0] border-[#59436A]'}`}>{item.id === '5km-person' ? <><span className="line-through opacity-70">ราคาปกติ 790 บาท</span><span className="text-[#2EAD62]">• ราคาพิเศษ</span></> : item.note}</span>
-                </div>
-              ))}
+            <h3 className="font-bold mb-2">🏃 วิ่งบุคคลทั่วไป</h3>
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              {ticketCategories.filter((t) => t.group === 'individual').map((t) => renderTicketOption(t.id))}
             </div>
 
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="px-6 py-3 rounded-xl bg-[#7B3FC6] hover:bg-[#54239A] text-white font-bold text-sm shadow-md transition-all flex items-center gap-2"
-              >
-                <span>ถัดไป: กรอกข้อมูลนักวิ่ง</span>
-                <span>➔</span>
+            <h3 className="font-bold mb-2">🐾 วิ่งคู่กับสัตว์เลี้ยง</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {ticketCategories.filter((t) => t.group === 'dog').map((t) => renderTicketOption(t.id))}
+            </div>
+
+            {isDog && (
+              <div className="mb-4 p-4 rounded-2xl bg-[#DDF7EA] border-2 border-dashed border-[#2A1450]/40 animate-pop">
+                <div className="text-sm font-bold">รวมแล้ว 1 คน + 1 น้องหมา อยากเพิ่มไหม?</div>
+                <Stepper
+                  label="เพิ่มคน"
+                  hint={`+${ticket.addPersonPrice} บาท/คน`}
+                  value={extraPeople}
+                  onChange={setExtraPeople}
+                  icon={<UserPlus className="w-5 h-5" />}
+                />
+                <div className="h-px bg-[#2A1450]/15" />
+                <Stepper
+                  label="เพิ่มน้องหมา"
+                  hint={`+${ticket.addDogPrice} บาท/ตัว`}
+                  value={extraDogs}
+                  onChange={setExtraDogs}
+                  icon={<PawIcon size={20} color="#2A1450" />}
+                />
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-4 pt-4 border-t-2 border-[#2A1450]/15">
+              <div>
+                <div className="text-xs font-semibold text-[#6B5A85]">
+                  {ticket.distanceLabel} · {peopleCount} คน{isDog ? ` + ${dogCount} น้องหมา` : ''}
+                </div>
+                <div key={total} className="font-display text-3xl font-bold animate-pop">
+                  {formatBaht(total)}
+                </div>
+              </div>
+              <button type="button" onClick={() => setStep(2)} className="btn-paw bg-[#FFC928] px-6 py-3 text-sm">
+                ถัดไป
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 2: Fill Personal Info */}
+        {/* STEP 2 */}
         {step === 2 && (
           <form onSubmit={handleSubmit} className="p-6">
-            {/* Selected Route Summary Banner */}
-            <div className="p-3 mb-4 rounded-xl bg-[#EEE4FA] flex items-center justify-between text-xs">
-              <div>
-                <span className="font-bold text-[#54239A]">ระยะที่เลือก: </span>
-                <span className="font-black text-[#17151C]">{({ '5km-person': '5 กม. บุคคลทั่วไป', '10km-person': '10 กม. บุคคลทั่วไป', 'dog1-pair': 'Dog 1 กม. 1:1', 'dog3-pair': 'Dog 3 กม. 1:1', 'dog1-person': 'Dog 1 กม. เพิ่มคน', 'dog1-dog': 'Dog 1 กม. เพิ่มสุนัข', 'dog3-person': 'Dog 3 กม. เพิ่มคน', 'dog3-dog': 'Dog 3 กม. เพิ่มสุนัข' } as Record<string, string>)[selectedTicket] || currentDetails.title}</span>
+            <div className="p-3 mb-4 rounded-2xl flex items-center justify-between text-sm border-2 border-[#2A1450]" style={{ background: accent[selectedRoute] }}>
+              <div className="font-bold">
+                {ticket.emoji} {ticket.name}
+                <span className="block text-xs font-semibold opacity-80">
+                  {peopleCount} คน{isDog ? ` + ${dogCount} น้องหมา` : ''} · {formatBaht(total)}
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="text-xs font-bold text-[#7B3FC6] underline"
-              >
-                เปลี่ยนระยะ
+              <button type="button" onClick={() => setStep(1)} className="text-xs font-bold underline">
+                เปลี่ยนบัตร
               </button>
             </div>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-xs font-bold text-[#17151C] dark:text-purple-200 mb-1">ชื่อ - นามสกุล *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="เช่น สมชาย ใจดี"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-purple-900/60 bg-white dark:bg-[#201235] text-sm text-[#17151C] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7B3FC6]"
-                />
+                <label className={labelCls}>ชื่อ - นามสกุล *</label>
+                <input type="text" required placeholder="เช่น สมชาย ใจดี" value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputCls} />
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#17151C] dark:text-purple-200 mb-1">เบอร์โทรศัพท์ *</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="08x-xxx-xxxx"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-purple-900/60 bg-white dark:bg-[#201235] text-sm text-[#17151C] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7B3FC6]"
-                  />
+                  <label className={labelCls}>เบอร์โทรศัพท์ *</label>
+                  <input type="tel" required placeholder="08x-xxx-xxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#17151C] dark:text-purple-200 mb-1">เบอร์ติดต่อฉุกเฉิน *</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="08x-xxx-xxxx"
-                    value={emergencyPhone}
-                    onChange={(e) => setEmergencyPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-purple-900/60 bg-white dark:bg-[#201235] text-sm text-[#17151C] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7B3FC6]"
-                  />
+                  <label className={labelCls}>เบอร์ติดต่อฉุกเฉิน *</label>
+                  <input type="tel" required placeholder="08x-xxx-xxxx" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} className={inputCls} />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#17151C] dark:text-purple-200 mb-1">อีเมลติดต่อ *</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="example@mail.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-purple-900/60 bg-white dark:bg-[#201235] text-sm text-[#17151C] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7B3FC6]"
-                  />
+                  <label className={labelCls}>อีเมล *</label>
+                  <input type="email" required placeholder="example@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#17151C] dark:text-purple-200 mb-1">ไซส์เสื้อวิ่งที่ระลึก *</label>
-                  <select
-                    value={shirtSize}
-                    onChange={(e) => setShirtSize(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-purple-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-[#7B3FC6] bg-white dark:bg-[#201235] text-[#17151C] dark:text-white"
-                  >
-                    <option value="XS">XS (รอบอก 34 นิ้ว)</option>
-                    <option value="S">S (รอบอก 36 นิ้ว)</option>
-                    <option value="M">M (รอบอก 38 นิ้ว)</option>
-                    <option value="L">L (รอบอก 40 นิ้ว)</option>
-                    <option value="XL">XL (รอบอก 42 นิ้ว)</option>
-                    <option value="2XL">2XL (รอบอก 44 นิ้ว)</option>
-                    <option value="3XL">3XL (รอบอก 48 นิ้ว)</option>
+                  <label className={labelCls}>ไซส์เสื้อ *</label>
+                  <select value={shirtSize} onChange={(e) => setShirtSize(e.target.value)} className={inputCls}>
+                    {['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'].map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
                   </select>
                 </div>
               </div>
 
-              {/* Running with Pet Checkbox */}
-              <div className="p-3.5 rounded-xl bg-[#DFF5E8]/40 border border-[#2EAD62]/30">
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={runningWithDog}
-                    onChange={(e) => setRunningWithDog(e.target.checked)}
-                    className="w-4 h-4 text-[#2EAD62] rounded focus:ring-[#2EAD62]"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Dog className="w-4 h-4 text-[#2EAD62]" />
-                    <span className="text-xs font-bold text-[#17151C]">
-                      พาสุนัข / สัตว์เลี้ยงมาร่วมวิ่งด้วย (ฟรี ไม่มีค่าใช้จ่ายเพิ่ม)
-                    </span>
+              {extraPeople > 0 && (
+                <div>
+                  <label className={labelCls}>ชื่อผู้ร่วมวิ่งเพิ่ม ({extraPeople} คน)</label>
+                  <textarea rows={2} placeholder="ชื่อ-นามสกุล และไซส์เสื้อ คนละบรรทัด" value={extraRunnerNames} onChange={(e) => setExtraRunnerNames(e.target.value)} className={inputCls} />
+                </div>
+              )}
+
+              {isDog && (
+                <div className="p-4 rounded-2xl bg-[#DDF7EA] border-2 border-dashed border-[#2A1450]/40 space-y-3">
+                  <div className="font-bold text-sm flex items-center gap-2">
+                    <PawIcon size={18} color="#2A1450" /> ข้อมูลน้องหมา ({dogCount} ตัว)
                   </div>
-                </label>
-                {runningWithDog && (
-                  <div className="mt-2 pl-6">
-                    <input
-                      type="text"
-                      placeholder="ระบุสายพันธุ์และชื่อน้องหมา เช่น โกลเด้น ชื่อช้างน้อย"
-                      value={dogBreed}
-                      onChange={(e) => setDogBreed(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#2EAD62]"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>ชื่อน้องหมา *</label>
+                      <input type="text" required placeholder="เช่น ช้างน้อย" value={dogName} onChange={(e) => setDogName(e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>สายพันธุ์ *</label>
+                      <input type="text" required placeholder="เช่น โกลเด้น" value={dogBreed} onChange={(e) => setDogBreed(e.target.value)} className={inputCls} />
+                    </div>
                   </div>
-                )}
-              </div>
+                  {dogCount > 1 && (
+                    <p className="text-xs font-semibold text-[#6B5A85]">
+                      มีน้องหมามากกว่า 1 ตัว ใส่ชื่อทุกตัวคั่นด้วยเครื่องหมายจุลภาค
+                    </p>
+                  )}
+                  <p className="text-xs font-semibold text-[#6B5A85]">
+                    น้องหมาต้องใส่สายจูงตลอดเส้นทาง และนำสมุดวัคซีนมาในวันรับ Race Kit
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-900"
-              >
+              <button type="button" onClick={() => setStep(1)} className="px-4 py-2.5 text-sm font-bold text-[#6B5A85] hover:text-[#2A1450]">
                 ย้อนกลับ
               </button>
-              <button
-                type="submit"
-                className="px-6 py-3 rounded-xl bg-[#FFC928] hover:bg-[#F5B800] text-[#17151C] font-black text-sm shadow-md transition-all"
-              >
-                ยืนยันการสมัคร & รับ BIB
+              <button type="submit" className="btn-paw bg-[#FFC928] px-6 py-3 text-sm">
+                ยืนยันสมัคร · {formatBaht(total)}
               </button>
             </div>
           </form>
         )}
 
-        {/* Step 3: Success Confirmation & Digital BIB Card */}
+        {/* STEP 3 */}
         {step === 3 && (
           <div className="p-6 text-center">
-            {/* Digital BIB Card Preview */}
-            <div className="relative p-6 mx-auto max-w-sm rounded-3xl bg-white border-4 border-[#17151C] shadow-2xl overflow-hidden mb-6 text-left">
-              {/* Corner Holes */}
-              <div className="absolute top-3 left-3 w-3.5 h-3.5 rounded-full bg-[#FAF9FC] border-2 border-[#17151C]" />
-              <div className="absolute top-3 right-3 w-3.5 h-3.5 rounded-full bg-[#FAF9FC] border-2 border-[#17151C]" />
-              <div className="absolute bottom-3 left-3 w-3.5 h-3.5 rounded-full bg-[#FAF9FC] border-2 border-[#17151C]" />
-              <div className="absolute bottom-3 right-3 w-3.5 h-3.5 rounded-full bg-[#FAF9FC] border-2 border-[#17151C]" />
-
-              <div className="flex items-center justify-between border-b-2 border-[#17151C] pb-2 mb-3">
-                <span className="text-[10px] font-black text-[#7B3FC6]">CHANG SUEK RUN 2027</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FFC928] text-[#17151C]">
-                  {currentDetails.title}
+            <div className="relative p-6 mx-auto max-w-sm rounded-3xl bg-white border-[3px] border-[#2A1450] shadow-[5px_6px_0_#2A1450] mb-6 text-left animate-pop">
+              <div className="flex items-center justify-between border-b-2 border-[#2A1450] pb-2 mb-3">
+                <span className="text-[11px] font-bold text-[#7B3FC6]">CHANG SUEK RUN 2027</span>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full border-2 border-[#2A1450]" style={{ background: accent[selectedRoute] }}>
+                  {ticket.distanceLabel}
                 </span>
               </div>
-
               <div className="text-center my-3">
-                <div className="text-xs text-gray-500 font-bold">BIB NUMBER</div>
-                <div className="font-mono text-5xl font-black tracking-wider text-[#17151C]">
-                  {bibNumber}
-                </div>
+                <div className="text-xs font-bold text-[#6B5A85]">BIB NUMBER</div>
+                <div className="font-display text-5xl font-bold tracking-wider">{bibNumber}</div>
               </div>
-
-              <div className="pt-2 border-t-2 border-[#17151C] flex items-center justify-between text-xs">
+              <div className="pt-2 border-t-2 border-[#2A1450] flex items-center justify-between text-xs gap-2">
                 <div>
-                  <div className="font-bold text-[#17151C]">{fullName || 'นักวิ่งผู้รักสุขภาพ'}</div>
-                  <div className="text-[11px] text-gray-500">ไซส์เสื้อ: {shirtSize}</div>
+                  <div className="font-bold">{fullName || 'นักวิ่งผู้รักสุขภาพ'}</div>
+                  <div className="text-[#6B5A85]">
+                    ไซส์ {shirtSize} · {formatBaht(total)}
+                  </div>
                 </div>
-                {runningWithDog && (
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-[#2EAD62] bg-[#DFF5E8] px-2 py-1 rounded-md">
-                    <Dog className="w-3.5 h-3.5" />
-                    <span>DOG RUNNER</span>
+                {isDog && (
+                  <div className="flex items-center gap-1 font-bold bg-[#DDF7EA] border-2 border-[#2A1450] px-2 py-1 rounded-full">
+                    <PawIcon size={14} color="#2A1450" />
+                    <span>{dogName || 'DOG'}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="mb-6">
-              <h4 className="text-lg font-black text-[#17151C] mb-1">
-                ยินดีต้อนรับสู่ครอบครัวช้างศึกรัน 2027!
-              </h4>
-              <p className="text-xs text-[#6F6878]">
-                ระบบได้บันทึกข้อมูลการสมัครของคุณเรียบร้อยแล้ว เจ้าหน้าที่จะส่งอีเมลยืนยันพร้อมกำหนดการรับเสื้อและเบอร์วิ่งอย่างเป็นทางการ
-              </p>
-            </div>
-
-            <div className="flex items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2.5 rounded-xl bg-[#7B3FC6] text-white font-bold text-sm shadow hover:bg-[#54239A] transition-all"
-              >
-                เสร็จสิ้น & กลับสู่หน้าแรก
-              </button>
-            </div>
+            <h4 className="text-xl font-bold mb-1">ยินดีต้อนรับสู่ครอบครัวช้างศึกรัน!</h4>
+            <p className="text-sm text-[#6B5A85] mb-5">
+              บันทึกข้อมูลเรียบร้อยแล้ว เจ้าหน้าที่จะส่งอีเมลยืนยันพร้อมกำหนดการรับเสื้อและเบอร์วิ่ง
+            </p>
+            <button type="button" onClick={onClose} className="btn-paw bg-[#FFC928] px-8 py-3 text-sm">
+              เสร็จสิ้น
+            </button>
           </div>
         )}
       </div>

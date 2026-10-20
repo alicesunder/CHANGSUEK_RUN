@@ -703,13 +703,13 @@ export const InteractiveRouteMap: React.FC<InteractiveRouteMapProps> = ({
         </div>
 
         {/* ============================================================ */}
-        {/* ROUTE SELECTOR TABS: [ 3 KM ] [ 5 KM ] [ 10 KM ] [ 21 KM ]    */}
+        {/* ROUTE SELECTOR TABS: [ 1 KM ] [ 3 KM ] [ 5 KM ] [ 10 KM ]    */}
         {/* ============================================================ */}
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-2 sm:p-2.5 border border-purple-100 shadow-xs mb-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* 4 Distance Buttons */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-              {(['3km', '5km', '10km', '21km'] as RouteId[]).map((rId) => {
+              {(['1km', '3km', '5km', '10km'] as RouteId[]).map((rId) => {
                 const r = routesData[rId];
                 const isSelected = selectedRoute === rId;
 
@@ -727,9 +727,9 @@ export const InteractiveRouteMap: React.FC<InteractiveRouteMapProps> = ({
                       className="w-2.5 h-2.5 rounded-full"
                       style={{ backgroundColor: isSelected ? '#FFC928' : r?.color || '#5B20A8' }}
                     />
-                    <span>{rId.toUpperCase()}</span>
+                    <span>{rId.toUpperCase()}{rId === '1km' || rId === '3km' ? ' 🐾' : ''}</span>
                     <span className="text-[10px] opacity-80 hidden sm:inline">
-                      ({r?.distanceKm || (rId === '21km' ? 21.1 : 0)} KM)
+                      ({r?.distanceKm || 0} KM)
                     </span>
                   </button>
                 );

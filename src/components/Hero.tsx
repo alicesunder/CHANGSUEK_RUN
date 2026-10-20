@@ -1,8 +1,10 @@
-import React, { useRef } from 'react';
-import { Calendar, MapPin, Activity, ChevronRight } from 'lucide-react';
-import { motion, useScroll, useTransform } from 'motion/react';
+import React from 'react';
+import { Calendar, ChevronRight, MapPin, Maximize2 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { RouteId } from '../types';
 import { HeroCountdownTimer } from './HeroCountdownTimer';
+import { PawIcon } from './brand/DogDecor';
+import { ticketCategories } from '../data/eventData';
 
 interface HeroProps {
   onOpenArtworkModal: () => void;
@@ -10,162 +12,214 @@ interface HeroProps {
   onSelectDistance: (distance: RouteId) => void;
 }
 
+const BEACH = '/images/hero/beach-run.jpg';
+
+const chipBg: Record<RouteId, string> = {
+  '5km': 'linear-gradient(160deg,#FFF1B8,#FFFBE6)',
+  '10km': 'linear-gradient(160deg,#E7DAFB,#F7F2FF)',
+  '1km': 'linear-gradient(160deg,#FFE3D0,#FFF6EE)',
+  '3km': 'linear-gradient(160deg,#FFEFD0,#FFFAEF)',
+};
+
+const fadeMask: React.CSSProperties = {
+  WebkitMaskImage:
+    'linear-gradient(to right, transparent 0%, #000 30%), linear-gradient(to bottom, transparent 0%, #000 16%)',
+  maskImage:
+    'linear-gradient(to right, transparent 0%, #000 30%), linear-gradient(to bottom, transparent 0%, #000 16%)',
+  WebkitMaskComposite: 'source-in',
+  maskComposite: 'intersect',
+};
+
 export const Hero: React.FC<HeroProps> = ({
   onOpenArtworkModal,
   onOpenRegisterModal,
   onSelectDistance,
 }) => {
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
-
-  // Subtle parallax translation and slight scale for smooth depth
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '22%']);
-  const backgroundScale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
-
   return (
-    <section
-      ref={heroRef}
-      id="hero"
-      className="relative min-h-screen pt-24 sm:pt-28 pb-16 sm:pb-24 flex items-center overflow-hidden text-white"
-    >
-      {/* Hero background with subtle parallax scrolling */}
-      <motion.div
+    <>
+      <section
+        id="hero"
+        className="relative overflow-hidden text-[#2A1450]"
         style={{
-          y: backgroundY,
-          scale: backgroundScale,
+          background: 'linear-gradient(180deg,#78D0F7 0%,#A9E3FA 38%,#D8F1F8 62%,#F7E6B5 100%)',
         }}
-        className="absolute inset-0 -top-12 -bottom-12 h-[calc(100%+6rem)] w-full pointer-events-none"
       >
-        <motion.img
-          src="/images/hero/changsuek-run-coastal.jpg"
-          alt="CHANGSUEK RUN Coastal Sunset Beach"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="h-full w-full object-cover object-center select-none"
-          referrerPolicy="no-referrer"
+        {/* Beach artwork anchored bottom-right, fading into the sky (desktop) */}
+        <img
+          src={BEACH}
+          alt="ช้างม่วง นักวิ่ง และน้องหมาโกลเด้น วิ่งเล่นริมชายหาด"
+          className="hidden lg:block absolute bottom-0 right-0 w-[80%] max-w-[1320px] h-auto pointer-events-none select-none"
+          style={fadeMask}
+          loading="eager"
         />
-      </motion.div>
 
-      {/* Foreground Content Container */}
-      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          
-          {/* LEFT COLUMN: Open view preserving the Elephant, Runner, and Dog composition in background */}
-          <div className="lg:col-span-6 flex flex-col justify-end items-start relative order-2 lg:order-1 min-h-[120px] lg:min-h-[460px]">
-            {/* Storytelling Slogan Badge & Modal Opener */}
-            <div className="mt-auto backdrop-blur-md bg-black/45 border border-white/20 px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-xl">
-              <div className="flex flex-col text-[10px] sm:text-[11px] font-black tracking-widest text-white leading-tight uppercase">
-                <span className="text-[#FFC928]">RUN WITH CHANGSUEK</span>
-                <span className="text-white/80">PEOPLE • PETS • A BRIGHTER TOMORROW</span>
-              </div>
-              <button
-                onClick={onOpenArtworkModal}
-                className="ml-auto text-[11px] font-bold text-white/90 hover:text-white bg-white/15 hover:bg-white/25 px-2.5 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
-                title="ดูภาพขยายเต็มจอ"
-              >
-                ดูภาพเต็ม
-              </button>
-            </div>
-          </div>
+        {/* Drifting paw prints */}
+        {[
+          { l: '58%', t: '16%', s: 40, r: -18 },
+          { l: '44%', t: '22%', s: 30, r: 14 },
+          { l: '88%', t: '12%', s: 36, r: 10 },
+          { l: '50%', t: '84%', s: 34, r: -8 },
+        ].map((p, i) => (
+          <PawIcon
+            key={i}
+            size={p.s}
+            color="#FFFFFF"
+            className="absolute opacity-60 animate-bobble pointer-events-none"
+            style={{
+              left: p.l,
+              top: p.t,
+              animationDelay: `${i * 0.7}s`,
+              filter: 'drop-shadow(0 2px 0 rgba(123,63,198,.25))',
+            }}
+          />
+        ))}
 
-          {/* RIGHT COLUMN: Official Logo, Slogan, Quick Info, Countdown & CTAs matching mockup */}
-          <div className="lg:col-span-6 flex flex-col items-start text-left order-1 lg:order-2">
-            
-            {/* Official CHANGSUEK RUN Logo as single complete image asset (NO duplicate text) */}
-            <div className="mb-4">
-              <img
-                src="/images/brand/changsuek-run-logo.png"
-                alt="CHANGSUEK RUN - เห็นช้างวิ่ง วิ่งตามช้าง"
-                className="h-28 sm:h-36 lg:h-44 w-auto object-contain drop-shadow-2xl"
-                referrerPolicy="no-referrer"
-              />
-            </div>
+        <div className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-8 pt-28 sm:pt-32 pb-8 lg:pb-44 lg:min-h-[800px]">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-[640px] text-center lg:text-left mx-auto lg:mx-0"
+          >
+            <img
+              src="/images/brand/changsuek-run-logo.png"
+              alt="CHANGSUEK RUN - เห็นช้างวิ่ง วิ่งตามช้าง"
+              className="h-24 sm:h-32 lg:h-36 w-auto object-contain mx-auto lg:mx-0 drop-shadow-lg"
+            />
 
-            {/* Handwritten / Script Subtitle: "มากกว่าวิ่ง คือการก้าวไปด้วยกัน" */}
-            <p className="text-lg sm:text-2xl font-bold text-[#FFD633] mb-6 tracking-wide drop-shadow-sm font-serif italic">
-              “มากกว่าวิ่ง คือการก้าวไปด้วยกัน”
+            <h1 className="mt-4 text-[44px] sm:text-6xl lg:text-[72px] font-bold leading-[1.05] tracking-tight">
+              วิ่งสนุกไปกับ
+              <br />
+              <span className="inline-flex items-center gap-3">
+                เพื่อนซี้สี่ขา
+                <svg viewBox="0 0 120 50" className="w-16 sm:w-24 h-auto -rotate-6 shrink-0" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="bolt" x1="0" x2="1">
+                      <stop offset="0" stopColor="#FFC928" stopOpacity="0.35" />
+                      <stop offset="1" stopColor="#FFC928" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 30 C 30 26 60 18 118 6 C 92 18 70 26 52 30 C 70 30 86 32 108 40 C 70 38 36 34 0 30 Z" fill="url(#bolt)" />
+                </svg>
+              </span>
+            </h1>
+
+            <p className="mt-5 text-base sm:text-lg font-medium text-[#3A2166] max-w-[520px] mx-auto lg:mx-0 leading-relaxed">
+              งานวิ่งริมหาดชะอำ-หัวหิน พาน้องหมามาวิ่งด้วยกัน หรือจะวิ่งคนเดียวก็สนุกได้เหมือนกัน
             </p>
 
-            {/* Event Quick Facts Capsule Bar matching mockup */}
-            <div className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 sm:p-4 mb-6 shadow-xl">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
-                
-                {/* 1. Date */}
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#FFCC00]/20 flex items-center justify-center text-[#FFCC00] flex-shrink-0">
-                    <Calendar className="w-4 h-4" />
+            {/* Ticket chips */}
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.3 } } }}
+              className="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-[600px] mx-auto lg:mx-0"
+            >
+              {ticketCategories.map((t) => (
+                <motion.button
+                  key={t.id}
+                  variants={{
+                    hidden: { opacity: 0, scale: 0.8, y: 14 },
+                    show: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 320, damping: 16 } },
+                  }}
+                  whileHover={{ y: -5, scale: 1.03 }}
+                  onClick={() => onSelectDistance(t.id)}
+                  className="text-left rounded-[20px] px-3.5 py-3 cursor-pointer border border-white/90 shadow-[0_10px_24px_-12px_rgba(75,45,120,.55)] backdrop-blur-sm"
+                  style={{ background: chipBg[t.id] }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-display text-[28px] font-bold leading-none">{t.distanceLabel}</span>
+                    <span className="text-xl" aria-hidden="true">{t.emoji}</span>
                   </div>
-                  <div>
-                    <div className="text-[10px] text-white/60 font-bold uppercase">วันที่จัดงาน</div>
-                    <div className="font-extrabold text-white">15 ก.พ. 2569</div>
+                  <div className="text-[11px] font-semibold text-[#4B2D78] mt-1.5 leading-tight">
+                    {t.group === 'dog' ? 'วิ่งคู่น้องหมา' : 'บุคคลทั่วไป'}
                   </div>
-                </div>
-
-                {/* 2. Venue */}
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300 flex-shrink-0">
-                    <MapPin className="w-4 h-4" />
+                  <div className="font-display text-[19px] font-bold mt-0.5">
+                    {t.group === 'dog' ? 'เริ่ม ' : ''}
+                    {t.basePrice}.-
                   </div>
-                  <div>
-                    <div className="text-[10px] text-white/60 font-bold uppercase">สถานที่จัดงาน</div>
-                    <div className="font-extrabold text-white">ค่ายพระราม 6 จ.เพชรบุรี</div>
-                  </div>
-                </div>
+                </motion.button>
+              ))}
+            </motion.div>
 
-                {/* 3. Distances */}
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-sky-500/20 flex items-center justify-center text-sky-300 flex-shrink-0">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-white/60 font-bold uppercase">ระยะวิ่ง</div>
-                    <div className="font-extrabold text-white">5K / 10K / 21K FUN RUN</div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            {/* REAL-TIME COUNTDOWN TIMER (PURPLE & GOLD BRAND PALETTE) */}
-            <HeroCountdownTimer targetDate="2027-02-15T06:00:00+07:00" className="mb-6" />
-
-            {/* CALL TO ACTION BUTTONS: [สมัครวิ่ง] and [ดูรายละเอียดงาน >] */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full">
-              
-              {/* Primary Yellow Pill Button */}
-              <button
-                onClick={onOpenRegisterModal}
-                className="bg-[#FFCC00] hover:bg-[#FFD633] text-[#17151C] font-black text-sm sm:text-base px-8 py-3.5 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-center"
-              >
-                สมัครวิ่ง
-              </button>
-
-              {/* Secondary Outlined / Glass Pill Button */}
-              <a
-                href="#inspiration"
-                className="bg-white/10 hover:bg-white/20 text-white font-bold text-sm sm:text-base px-6 py-3.5 rounded-full border border-white/30 backdrop-blur-sm transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>ดูรายละเอียดงาน</span>
-                <ChevronRight className="w-4 h-4" />
-              </a>
-
-            </div>
-
-            {/* Bottom-right script signature: Run Together a Brighter Tomorrow */}
-            <div className="w-full flex justify-end mt-4 pr-4">
-              <span className="text-sm sm:text-base font-serif italic text-white/60 tracking-wider">
-                Run Together a Brighter Tomorrow
+            {/* Date + place */}
+            <div className="mt-5 flex flex-wrap gap-3 justify-center lg:justify-start text-sm font-semibold">
+              <span className="inline-flex items-center gap-2.5 bg-white/90 rounded-full pl-3 pr-5 py-2 shadow-[0_8px_18px_-10px_rgba(75,45,120,.5)]">
+                <Calendar className="w-5 h-5 text-[#7B3FC6]" />
+                15 ก.พ. 2570
+              </span>
+              <span className="inline-flex items-center gap-2.5 bg-white/90 rounded-full pl-3 pr-5 py-2 shadow-[0_8px_18px_-10px_rgba(75,45,120,.5)]">
+                <MapPin className="w-5 h-5 text-[#7B3FC6]" />
+                ค่ายนเรศวร ชะอำ-หัวหิน
               </span>
             </div>
 
-          </div>
+            {/* CTAs */}
+            <div className="mt-6 flex flex-wrap items-center gap-4 justify-center lg:justify-start">
+              <button
+                onClick={onOpenRegisterModal}
+                className="inline-flex items-center gap-3 rounded-full px-8 py-4 text-lg font-bold text-[#2A1450] transition-transform hover:scale-105 active:scale-95"
+                style={{
+                  background: 'linear-gradient(180deg,#FFD84D,#FFBE0B)',
+                  border: '3px solid #2A1450',
+                  boxShadow: '0 6px 0 #2A1450',
+                }}
+              >
+                <PawIcon size={26} color="#2A1450" />
+                สมัครวิ่งเลย
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              <a
+                href="#distances"
+                className="inline-flex items-center gap-2 rounded-full px-7 py-4 text-lg font-bold bg-white/90 text-[#2A1450] transition-transform hover:scale-105"
+                style={{ border: '3px solid #2A1450', boxShadow: '0 6px 0 #2A1450' }}
+              >
+                ดูราคาบัตรวิ่ง
+                <ChevronRight className="w-5 h-5" />
+              </a>
+            </div>
+          </motion.div>
 
+          {/* Mobile / tablet artwork in flow */}
+          <div className="lg:hidden mt-8 -mx-4 sm:-mx-8 relative">
+            <img
+              src={BEACH}
+              alt="ช้างม่วง นักวิ่ง และน้องหมาโกลเด้น วิ่งเล่นริมชายหาด"
+              className="w-full h-auto block"
+              style={{
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, #000 18%)',
+                maskImage: 'linear-gradient(to bottom, transparent 0%, #000 18%)',
+              }}
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={onOpenArtworkModal}
+          className="absolute z-20 right-4 sm:right-8 bottom-24 sm:bottom-28 inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-[#2A1450] shadow-md hover:scale-105 transition-transform"
+        >
+          <Maximize2 className="w-4 h-4" />
+          ดูภาพเต็ม
+        </button>
+
+        {/* Purple wave with a gold line */}
+        <svg
+          viewBox="0 0 1440 110"
+          preserveAspectRatio="none"
+          className="absolute bottom-0 left-0 w-full h-16 sm:h-24 z-10 pointer-events-none"
+          aria-hidden="true"
+        >
+          <path d="M0 62 C 220 10 420 24 640 58 C 860 92 1100 88 1440 20 L1440 110 L0 110 Z" fill="#FFC928" />
+          <path d="M0 76 C 220 28 420 40 640 72 C 860 104 1100 102 1440 38 L1440 110 L0 110 Z" fill="#4B1C8C" />
+        </svg>
+      </section>
+
+      {/* Countdown band continues the purple wave */}
+      <div className="bg-[#4B1C8C] pb-8 px-4">
+        <div className="max-w-[560px] mx-auto">
+          <HeroCountdownTimer targetDate="2027-02-15T06:00:00+07:00" />
         </div>
       </div>
-    </section>
+    </>
   );
 };

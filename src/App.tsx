@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { RouteId } from './types';
+import { ScrollFX } from './components/ScrollFX';
 import { CustomCursor } from './components/CustomCursor';
 import { EasterEggElephant } from './components/EasterEggElephant';
 import { RegistrationModal } from './components/RegistrationModal';
@@ -18,7 +19,6 @@ import { ChangsuekRunExperience } from './components/ChangsuekRunExperience';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { EventIntro } from './components/EventIntro';
 import { RaceDistances } from './components/RaceDistances';
 import { EventHighlights } from './components/EventHighlights';
 import { RouteAndScheduleSection } from './components/RouteAndScheduleSection';
@@ -31,10 +31,11 @@ import { EventCtaBanner } from './components/EventCtaBanner';
 import { Footer } from './components/Footer';
 
 export default function App() {
-  const [selectedRoute, setSelectedRoute] = useState<RouteId>('3km');
+  const [selectedRoute, setSelectedRoute] = useState<RouteId>('5km');
   const [artworkModalOpen, setArtworkModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const [registerTargetRoute, setRegisterTargetRoute] = useState<RouteId>('3km');
+  const [registerTargetRoute, setRegisterTargetRoute] = useState<RouteId>('5km');
+  const [registerExtras, setRegisterExtras] = useState({ people: 0, dogs: 0 });
   const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [paceModalOpen, setPaceModalOpen] = useState(false);
@@ -57,7 +58,8 @@ export default function App() {
     }
   };
 
-  const handleOpenRegister = (distance?: RouteId) => {
+  const handleOpenRegister = (distance?: RouteId, extras?: { people: number; dogs: number }) => {
+    setRegisterExtras(extras ?? { people: 0, dogs: 0 });
     if (distance) {
       setRegisterTargetRoute(distance);
     } else {
@@ -82,6 +84,7 @@ export default function App() {
     <div className="min-h-screen bg-[#FFFFFF] text-[#17151C] font-sans antialiased selection:bg-[#FFCC00] selection:text-[#17151C] relative overflow-x-hidden pb-16 lg:pb-0">
       {/* 1. Desktop Custom Cursor */}
       <CustomCursor />
+      <ScrollFX />
 
       {/* 2. Easter Egg Elephant */}
       <EasterEggElephant
@@ -115,7 +118,6 @@ export default function App() {
         />
 
         {/* 6. แรงบันดาลใจจากช้าง สู่เส้นทางที่ยิ่งใหญ่กว่า (Inspiration Section) */}
-        <EventIntro onOpenVideoModal={() => setVideoModalOpen(true)} />
 
         {/* 7. ระยะวิ่ง (4 distance cards + เสื้อวิ่ง & เหรียญรางวัล) */}
         <RaceDistances
@@ -197,6 +199,8 @@ export default function App() {
       <RegistrationModal
         isOpen={registerModalOpen}
         initialRoute={registerTargetRoute}
+        initialExtraPeople={registerExtras.people}
+        initialExtraDogs={registerExtras.dogs}
         onClose={() => setRegisterModalOpen(false)}
         onRegistrationSuccess={() => {
           setRegisterModalOpen(false);

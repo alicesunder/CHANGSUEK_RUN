@@ -9,7 +9,9 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { RouteId } from '../types';
+import { PawIcon, PawTrail } from './brand/DogDecor';
 
 interface ChangsuekRunExperienceProps {
   onOpenRegister: (routeId?: RouteId) => void;
@@ -28,7 +30,7 @@ export const ChangsuekRunExperience: React.FC<ChangsuekRunExperienceProps> = ({
       step: '01',
       title: 'DISCOVER',
       headline: 'ค้นพบเส้นทางที่ใช่',
-      desc: 'ศึกษาเส้นทาง GPS 3K / 5K / 10K ชายหาดชะอำ ค่ายนเรศวร และโรงแรม Pet-Friendly 41 แห่ง',
+      desc: 'ศึกษาเส้นทาง GPS 1K / 3K / 5K / 10K ชายหาดชะอำ ค่ายนเรศวร และโรงแรม Pet-Friendly 41 แห่ง',
       icon: Compass,
       badge: 'EXPLORE',
       color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -105,112 +107,116 @@ export const ChangsuekRunExperience: React.FC<ChangsuekRunExperienceProps> = ({
     },
   ];
 
+  const tint = [
+    { bg: 'linear-gradient(160deg,#C9F3DD,#EBFAF2)', dot: '#2EAD62' },
+    { bg: 'linear-gradient(160deg,#E3D3FB,#F5EEFF)', dot: '#7B3FC6' },
+    { bg: 'linear-gradient(160deg,#BFE8FB,#E8F7FE)', dot: '#2B9FD6' },
+    { bg: 'linear-gradient(160deg,#FFE9A6,#FFF7D9)', dot: '#E5A800' },
+    { bg: 'linear-gradient(160deg,#FFC9B5,#FFEBE2)', dot: '#F2762A' },
+    { bg: 'linear-gradient(160deg,#FFC4DA,#FFE9F1)', dot: '#E0457F' },
+  ];
+
   return (
-    <section id="experience" className="py-16 sm:py-24 bg-gradient-to-b from-[#FAF8FD] via-white to-[#FAF8FD] relative overflow-hidden">
-      {/* Subtle Background Glows */}
-      <div className="absolute top-10 left-1/4 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
+    <section id="experience" className="py-16 sm:py-24 relative overflow-hidden">
+      <div className="absolute top-16 -left-16 w-72 h-72 bg-[#FFC928]/25 blob pointer-events-none animate-bobble" />
+      <div className="absolute bottom-10 -right-20 w-80 h-80 bg-[#C9A6F5]/30 blob pointer-events-none animate-bobble" style={{ animationDelay: '1.2s' }} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-18 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/70 border border-purple-200 text-[#5B20A8] text-xs font-black uppercase tracking-widest">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          className="text-center max-w-3xl mx-auto mb-12 space-y-3"
+        >
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border-2 border-[#2A1450] text-[#5B20A8] text-xs font-bold uppercase tracking-widest shadow-[0_3px_0_#2A1450]">
             <Sparkles className="w-3.5 h-3.5 text-[#FFC928]" />
-            <span>CHANGSUEK RUN EXPERIENCE</span>
-          </div>
-
-          <h2 className="text-3xl sm:text-5xl font-black text-[#1F1035] tracking-tight leading-tight">
-            การเดินทางของนักวิ่งช้างศึก
-          </h2>
-
-          <p className="text-sm sm:text-base text-gray-600 font-medium">
-            สัมผัสประสบการณ์ดิจิทัลเต็มรูปแบบ ตั้งแต่การค้นพบเส้นทาง สมัครรับ BIB จำลองเส้นทาง จนถึงวินาทีข้ามเส้นชัย
+            CHANGSUEK RUN EXPERIENCE
+          </span>
+          <h2 className="text-4xl sm:text-6xl font-bold text-[#2A1450] leading-tight">การเดินทางของนักวิ่งช้างศึก</h2>
+          <p className="text-sm sm:text-lg text-[#4B2D78] font-medium">
+            ตั้งแต่ค้นหาเส้นทาง สมัครรับ BIB เตรียมตัว ไปจนถึงวินาทีข้ามเส้นชัยพร้อมเพื่อนสี่ขา
           </p>
-        </div>
+        </motion.div>
 
-        {/* 6-Step Journey Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
-          {steps.map((st) => {
+        {/* 6 steps */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {steps.map((st, i) => {
             const Icon = st.icon;
+            const t = tint[i];
             return (
-              <div
+              <motion.div
                 key={st.step}
-                className="bg-white rounded-3xl p-6 sm:p-7 border border-purple-100 hover:border-purple-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+                initial={{ opacity: 0, y: 50, rotate: i % 2 ? 2 : -2 }}
+                whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ type: 'spring', stiffness: 160, damping: 16, delay: (i % 3) * 0.08 }}
+                whileHover={{ y: -8, rotate: i % 2 ? 1.2 : -1.2 }}
+                className={`relative rounded-[28px] p-6 border-[3px] border-white shadow-[0_16px_34px_-16px_rgba(75,45,120,.5)] flex flex-col ${
+                  i % 3 === 1 ? 'lg:mt-8' : ''
+                }`}
+                style={{ background: t.bg }}
               >
-                {/* Top Step Number Watermark */}
-                <span className="absolute top-4 right-5 text-4xl font-mono font-black text-gray-100 group-hover:text-purple-100/70 transition-colors pointer-events-none">
+                <span
+                  className="absolute -top-4 -left-3 w-12 h-12 rounded-full text-white font-display font-bold text-lg flex items-center justify-center border-[3px] border-white shadow-md animate-boing"
+                  style={{ background: t.dot, animationDelay: `${i * 0.25}s` }}
+                >
                   {st.step}
                 </span>
+                <PawIcon size={80} color="#fff" className="absolute -right-3 -bottom-3 opacity-50 rotate-12 pointer-events-none" />
 
-                <div>
-                  <div className="flex items-center gap-2.5 mb-4">
-                    <div
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-xs group-hover:scale-105 transition-transform ${st.color}`}
-                    >
-                      <Icon className="w-6 h-6 stroke-[2]" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                      {st.badge}
-                    </span>
-                  </div>
-
-                  <div className="text-xs font-black text-[#5B20A8] tracking-widest uppercase mb-1">
-                    STEP {st.step} • {st.title}
-                  </div>
-
-                  <h3 className="text-lg sm:text-xl font-black text-[#1F1035] leading-snug mb-2 group-hover:text-[#5B20A8] transition-colors">
-                    {st.headline}
-                  </h3>
-
-                  <p className="text-xs sm:text-[13px] text-gray-500 leading-relaxed font-medium">
-                    {st.desc}
-                  </p>
+                <div className="flex items-center justify-between mb-4 pl-8">
+                  <span className="text-[11px] font-bold tracking-widest" style={{ color: t.dot }}>
+                    {st.badge}
+                  </span>
+                  <span className="w-12 h-12 rounded-2xl bg-white shadow flex items-center justify-center" style={{ color: t.dot }}>
+                    <Icon className="w-6 h-6" />
+                  </span>
                 </div>
-
-                <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between">
-                  <button
-                    onClick={st.onAction}
-                    className="inline-flex items-center gap-1.5 text-xs font-black text-[#5B20A8] hover:text-[#3D106B] group/btn cursor-pointer"
-                  >
-                    <span>{st.actionText}</span>
-                    <ChevronRight className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#2A1450] leading-snug">{st.headline}</h3>
+                <p className="mt-2 text-sm text-[#4B2D78] font-medium leading-relaxed flex-1">{st.desc}</p>
+                <button
+                  onClick={st.onAction}
+                  className="group/btn mt-5 self-start inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-sm font-bold text-[#2A1450] shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  <span>{st.actionText}</span>
+                  <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+              </motion.div>
             );
           })}
         </div>
 
-        {/* Quick Launch Banner at Section Bottom */}
-        <div className="mt-12 sm:mt-16 bg-gradient-to-r from-[#3D106B] via-[#5B20A8] to-[#261042] rounded-3xl p-6 sm:p-10 text-white shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-2 border-purple-300/30">
-          <div className="space-y-2 max-w-xl">
-            <span className="text-xs font-black uppercase tracking-widest text-[#FFC928]">
-              READY TO JOIN US?
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-black leading-tight">
-              พร้อมแล้วใช่ไหมที่จะก้าวไปด้วยกัน?
-            </h3>
-            <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
+        {/* CTA banner */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          className="relative mt-14 sm:mt-20 rounded-[32px] overflow-hidden p-7 sm:p-10 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+          style={{ background: 'linear-gradient(120deg,#5A25A8,#7B3FC6 55%,#4B1C8C)', boxShadow: '0 22px 40px -18px rgba(75,28,140,.7)' }}
+        >
+          <PawTrail className="absolute right-6 top-4 opacity-70" count={6} color="#FFC928" />
+          <div className="relative space-y-2 max-w-xl">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#FFC928]">READY TO JOIN US?</span>
+            <h3 className="text-2xl sm:text-4xl font-bold leading-tight">พร้อมแล้วใช่ไหมที่จะก้าวไปด้วยกัน?</h3>
+            <p className="text-sm sm:text-base text-white/85 leading-relaxed">
               ร่วมเป็นหนึ่งในประวัติศาสตร์งานวิ่งช้างศึกรัน 2027 ท่ามกลางหาดทราย ป่าสน และกลิ่นอายค่ายนเรศวร
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => onOpenRegister()}
-              className="px-8 py-3.5 rounded-full bg-[#FFC928] hover:bg-[#F5B800] text-[#17151C] font-black text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 cursor-pointer"
-            >
+          <div className="relative flex flex-wrap items-center gap-3">
+            <button onClick={() => onOpenRegister()} className="btn-paw bg-[#FFC928] px-8 py-3.5 text-base">
+              <PawIcon size={20} color="#2A1450" />
               สมัครวิ่งทันที
             </button>
             <button
               onClick={onOpenRunnerCenter}
-              className="px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/30 backdrop-blur-sm transition-all cursor-pointer flex items-center gap-2"
+              className="px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 text-white font-bold text-sm border-2 border-white/40 backdrop-blur-sm transition-all cursor-pointer inline-flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
-              <span>เปิดศูนย์นักวิ่ง (Runner Center)</span>
+              เปิดศูนย์นักวิ่ง (Runner Center)
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

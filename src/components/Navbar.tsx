@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = [
     { label: 'หน้าแรก', href: '#hero', active: true },
-    { label: 'รายละเอียดงาน', href: '#inspiration' },
+    { label: 'รายละเอียดงาน', href: '#experience' },
     { label: 'ระยะวิ่ง', href: '#distances' },
     { label: 'เสื้อ & เหรียญ', href: '#merch-showcase' },
     { label: 'กำหนดการ', href: '#schedule' },

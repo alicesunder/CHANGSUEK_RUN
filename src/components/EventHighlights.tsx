@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { Award, Mountain, Gift, Shirt, Coffee, ShieldAlert, Camera, Users, Dog } from 'lucide-react';
 
 export const EventHighlights: React.FC = () => {
@@ -50,37 +51,47 @@ export const EventHighlights: React.FC = () => {
     },
   ];
 
-  return (
-    <section id="highlights" className="py-12 sm:py-16 bg-[#FFFFFF] border-b border-purple-50">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Title matching mockup */}
-        <div className="mb-8 sm:mb-10 text-left">
-          <h2 className="text-3xl sm:text-4xl font-black text-[#261042] tracking-tight">
-            ไฮไลท์งาน
-          </h2>
-        </div>
+  const palette = ['#C9A6F5', '#7FDDB0', '#FFD84D', '#FFA66E', '#8ED8F8', '#FF9EBB', '#B7E36B', '#C9A6F5', '#7FDDB0'];
 
-        {/* 9 White Cards Grid matching mockup */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3 sm:gap-4">
-          {highlights.map((item) => {
+  return (
+    <section id="highlights" className="py-14 sm:py-20 relative overflow-hidden">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-10 text-center"
+        >
+          <h2 className="text-4xl sm:text-5xl font-bold text-[#2A1450]">ไฮไลท์งาน</h2>
+          <p className="mt-2 text-sm sm:text-base font-medium text-[#4B2D78]">ทำไมต้องวิ่งกับช้างศึกรัน</p>
+        </motion.div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-4 sm:gap-5">
+          {highlights.map((item, i) => {
             const Icon = item.icon;
             return (
-              <div
+              <motion.div
                 key={item.id}
-                className="bg-white rounded-2xl p-4 sm:p-5 border border-purple-100 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col items-center text-center group cursor-pointer hover:border-purple-300"
+                initial={{ opacity: 0, scale: 0.5, y: 30 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 14, delay: i * 0.06 }}
+                whileHover={{ y: -10, rotate: i % 2 ? 4 : -4, scale: 1.06 }}
+                className="bg-white rounded-[24px] p-4 sm:p-5 border-[3px] border-white shadow-[0_14px_28px_-14px_rgba(75,45,120,.5)] flex flex-col items-center text-center cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-[#6C2EB9] group-hover:bg-[#6C2EB9] group-hover:text-white transition-colors duration-200 mb-3">
-                  <Icon className="w-6 h-6 stroke-[1.8]" />
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-[#2A1450] mb-3 animate-boing"
+                  style={{ background: palette[i], animationDelay: `${i * 0.18}s` }}
+                >
+                  <Icon className="w-7 h-7 stroke-[2]" />
                 </div>
-                <span className="text-xs font-bold text-gray-800 leading-snug whitespace-pre-line">
+                <span className="text-xs sm:text-[13px] font-bold text-[#2A1450] leading-snug whitespace-pre-line">
                   {item.title}
                 </span>
-              </div>
+              </motion.div>
             );
           })}
         </div>
-
       </div>
     </section>
   );

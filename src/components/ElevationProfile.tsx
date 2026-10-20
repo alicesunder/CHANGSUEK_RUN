@@ -41,13 +41,13 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({ selectedRout
               <div className="bg-[#FAF9FC] border border-[#ECEAF0] px-3 py-1.5 rounded-xl text-center">
                 <div className="text-[10px] text-[#6F6A76] uppercase font-bold">สูงสุด</div>
                 <div className="text-sm font-extrabold text-[#18151D]">
-                  {selectedRoute === '10km' ? '14 ม.' : selectedRoute === '5km' ? '11 ม.' : '7 ม.'}
+                  {selectedRoute === '10km' ? '14 ม.' : selectedRoute === '5km' ? '11 ม.' : selectedRoute === '1km' ? '5 ม.' : '7 ม.'}
                 </div>
               </div>
               <div className="bg-[#FAF9FC] border border-[#ECEAF0] px-3 py-1.5 rounded-xl text-center">
                 <div className="text-[10px] text-[#6F6A76] uppercase font-bold">Elevation Gain</div>
                 <div className="text-sm font-extrabold text-[#2EAA59]">
-                  +{selectedRoute === '10km' ? '28' : selectedRoute === '5km' ? '18' : '10'} ม.
+                  +{selectedRoute === '10km' ? '28' : selectedRoute === '5km' ? '18' : selectedRoute === '1km' ? '2' : '10'} ม.
                 </div>
               </div>
             </div>

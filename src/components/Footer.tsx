@@ -59,10 +59,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenArtworkModal, onOpenRegist
                 <a href="#hero" className="hover:text-[#FFCC00] transition-colors">หน้าแรก</a>
               </li>
               <li>
-                <a href="#inspiration" className="hover:text-[#FFCC00] transition-colors">รายละเอียดงาน</a>
+                <a href="#experience" className="hover:text-[#FFCC00] transition-colors">รายละเอียดงาน</a>
               </li>
               <li>
-                <a href="#distances" className="hover:text-[#FFCC00] transition-colors">ระยะวิ่ง (3K / 5K / 10K / 21K)</a>
+                <a href="#distances" className="hover:text-[#FFCC00] transition-colors">ระยะวิ่ง (10K / 5K / Dog 3K / Dog 1K)</a>
               </li>
               <li>
                 <a href="#routes" className="hover:text-[#FFCC00] transition-colors">เส้นทางวิ่ง & จุดบริการ</a>

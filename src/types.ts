@@ -1,4 +1,4 @@
-export type RouteId = '3km' | '5km' | '10km' | '21km';
+export type RouteId = '1km' | '3km' | '5km' | '10km';
 
 export interface Landmark {
   id: string;

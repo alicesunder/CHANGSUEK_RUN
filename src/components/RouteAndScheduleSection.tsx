@@ -52,15 +52,23 @@ export const RouteAndScheduleSection: React.FC<RouteAndScheduleProps> = ({
     },
     {
       time: '06:00',
-      title: 'ปล่อยตัว FUN RUN (3 KM)',
-      desc: 'วิ่งสนุกริมชายหาดชะอำ บรรยากาศครอบครัวและสัตว์เลี้ยง',
+      title: 'ปล่อยตัว DOG RUN (3 KM)',
+      desc: 'วิ่งคู่น้องหมาริมชายหาดชะอำ บรรยากาศครอบครัวและสัตว์เลี้ยง',
       icon: Flag,
-      badge: '3 KM',
+      badge: '3 KM 🐾',
+      highlight: false,
+    },
+    {
+      time: '06:10',
+      title: 'ปล่อยตัว DOG MINI RUN (1 KM)',
+      desc: 'วิ่งเล่นสบาย ๆ กับน้องหมา เหมาะกับลูกหมา น้องหมาสูงวัย และเด็กเล็ก',
+      icon: Flag,
+      badge: '1 KM 🐾',
       highlight: false,
     },
     {
       time: '06:20',
-      title: 'ปล่อยตัว MINI MARATHON (5 KM)',
+      title: 'ปล่อยตัววิ่งบุคคลทั่วไป (5 KM)',
       desc: 'เริ่มก้าวแรกสู่สุขภาพที่ดี พร้อมสัมผัสไอทะเลและลมเช้า',
       icon: Flag,
       badge: '5 KM • ยอดนิยม',
@@ -68,7 +76,7 @@ export const RouteAndScheduleSection: React.FC<RouteAndScheduleProps> = ({
     },
     {
       time: '06:40',
-      title: 'ปล่อยตัว CHALLENGE RUN (10 KM)',
+      title: 'ปล่อยตัววิ่งบุคคลทั่วไป (10 KM)',
       desc: 'ท้าทายขีดจำกัดตัวเอง เส้นทางผ่านจุดประวัติศาสตร์ค่ายพระราม 6',
       icon: Flag,
       badge: '10 KM',
@@ -247,7 +255,7 @@ export const RouteAndScheduleSection: React.FC<RouteAndScheduleProps> = ({
                 </div>
               </div>
 
-              {/* ----------------- 06:00 ปล่อยตัว FUN RUN (3 KM) ----------------- */}
+              {/* ----------------- 06:00 ปล่อยตัว DOG RUN (3 KM) ----------------- */}
               <div className="flex items-center gap-3 sm:gap-6 relative group">
                 <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
@@ -269,11 +277,45 @@ export const RouteAndScheduleSection: React.FC<RouteAndScheduleProps> = ({
                           3 KM
                         </span>
                         <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                          ปล่อยตัว FUN RUN
+                          ปล่อยตัว DOG RUN
                         </h3>
                       </div>
                       <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-1">
-                        วิ่งสนุก สำหรับทุกคน
+                        วิ่งคู่น้องหมา สนุกได้ไกลกว่า
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+              {/* ----------------- 06:10 ปล่อยตัว DOG MINI RUN (1 KM) ----------------- */}
+              <div className="flex items-center gap-3 sm:gap-6 relative group">
+                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
+                </div>
+
+                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
+                  06:10
+                </span>
+
+                {/* Styled Card with Distance Badge */}
+                <div className="flex-1 bg-[#FAF7FD]/80 hover:bg-[#FAF7FD] rounded-2xl p-3 sm:p-4 border border-purple-200/70 hover:border-purple-300 transition-all flex items-center justify-between gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
+                      <Flag className="w-5 h-5 stroke-[2]" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="bg-[#5B20A8] text-white text-[11px] font-black px-2.5 py-0.5 rounded-md shadow-2xs tracking-wider">
+                          1 KM
+                        </span>
+                        <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
+                          ปล่อยตัว DOG MINI RUN
+                        </h3>
+                      </div>
+                      <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-1">
+                        วิ่งเล่นสบาย ๆ กับน้องหมา ระยะสั้น
                       </p>
                     </div>
                   </div>

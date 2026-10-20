@@ -15,62 +15,70 @@ export const DistanceComparisonModal: React.FC<DistanceComparisonModalProps> = (
 }) => {
   if (!isOpen) return null;
 
-  const comparisonData = [
+  const columns: {
+    id: RouteId;
+    short: string;
+    sub: string;
+    chip: string;
+    color: string;
+    soft: string;
+  }[] = [
+    { id: '1km', short: '1 KM', sub: 'DOG MINI RUN', chip: 'เริ่มต้นง่าย', color: '#FF8A3D', soft: '#FFE9DA' },
+    { id: '3km', short: '3 KM', sub: 'DOG RUN', chip: 'วิ่งคู่น้องหมา', color: '#2EAD62', soft: '#DFF5E8' },
+    { id: '5km', short: '5 KM', sub: 'บุคคลทั่วไป', chip: 'ยอดนิยม', color: '#E5A800', soft: '#FFF6CF' },
+    { id: '10km', short: '10 KM', sub: 'บุคคลทั่วไป', chip: 'ท้าทาย', color: '#7B3FC6', soft: '#EEE4FA' },
+  ];
+
+  const comparisonData: { label: string; icon: any; v: [string, string, string, string] }[] = [
     {
-      label: 'ระดับความเหมาะสม',
-      icon: Heart,
-      f3k: 'ผู้เริ่มต้น เด็ก ครอบครัว และสัตว์เลี้ยง',
-      c5k: 'นักวิ่งที่ต้องการพัฒนาความเร็ว สุขภาพ',
-      w10k: 'นักวิ่งสายผจญภัย วิ่งเทรล และคนรักสุนัข',
+      label: 'ราคาบัตร',
+      icon: Award,
+      v: [
+        '790 บาท (1 คน + 1 น้องหมา)',
+        '890 บาท (1 คน + 1 น้องหมา)',
+        '690 บาท / คน',
+        '890 บาท / คน',
+      ],
     },
     {
-      label: 'เวลาปล่อยตัว (Start)',
-      icon: Clock,
-      f3k: '06:30 น.',
-      c5k: '06:15 น.',
-      w10k: '06:00 น.',
+      label: 'เพิ่มคน / เพิ่มน้องหมา',
+      icon: UserPlus,
+      v: ['+450 บาท/คน · +250 บาท/ตัว', '+500 บาท/คน · +300 บาท/ตัว', '-', '-'],
+    },
+    {
+      label: 'เหมาะกับ',
+      icon: Heart,
+      v: [
+        'ลูกหมา น้องหมาสูงวัย เด็กเล็ก',
+        'ครอบครัวและเจ้าของที่พาน้องหมาวิ่งเป็นประจำ',
+        'นักวิ่งที่อยากพัฒนาความเร็วและสุขภาพ',
+        'นักวิ่งที่อยากท้าทายตัวเอง',
+      ],
     },
     {
       label: 'เวลาคัทออฟ (Cut-off)',
       icon: Clock,
-      f3k: '1 ชม. 15 นาที (ชิลมาก)',
-      c5k: '1 ชม. 30 นาที',
-      w10k: '2 ชม. 15 นาที',
-    },
-    {
-      label: 'ความชันสะสม (Gain)',
-      icon: Mountain,
-      f3k: '+12 เมตร (ทางเรียบ)',
-      c5k: '+18 เมตร (มีเนินป่าสนเบาๆ)',
-      w10k: '+28 เมตร (เทรลหาดทราย & เนินดิน)',
-    },
-    {
-      label: 'จุดบริการน้ำดื่ม',
-      icon: Droplets,
-      f3k: '1 จุด (กม. 1.5) + จุด Start/Finish',
-      c5k: '2 จุด (กม. 2, 3.8) + Start/Finish',
-      w10k: '4 จุด (กม. 2, 4.5, 7, 8.5) + Start/Finish',
+      v: ['45 นาที', '1 ชม. 15 นาที', '1 ชม. 30 นาที', '2 ชม. 15 นาที'],
     },
     {
       label: 'สภาพพื้นผิววิ่ง',
       icon: MapPin,
-      f3k: 'ถนนลาดยาง 80% + หาดทรายแน่น 20%',
-      c5k: 'ถนนลาดยาง 65% + ป่าชายเลน 35%',
-      w10k: 'ทรายหาด 35% + ป่าสน 35% + ทางเรียบ 30%',
+      v: [
+        'ทางเลียบหาด เรียบ 100%',
+        'ถนนคอนกรีตและทางเลียบหาด เรียบ 100%',
+        'ถนนลาดยาง/คอนกรีต 85% + ทางเลียบสระ 15%',
+        'ทรายหาด ป่าสน และทางเรียบ',
+      ],
     },
     {
       label: 'การนำสุนัขเข้าร่วม',
       icon: Heart,
-      f3k: 'ยินดีต้อนรับ (มีจุดน้ำสัตว์เลี้ยง)',
-      c5k: 'ยินดีต้อนรับ (สายจูงมาตรฐาน)',
-      w10k: 'ไฮไลต์ War Dog Trail (มีสัตวแพทย์ดูแล)',
-    },
-    {
-      label: 'ของที่ได้รับใน Race Kit',
-      icon: Award,
-      f3k: 'เสื้อวิ่ง, เหรียญที่ระลึก, BIB, อาหารเช้า, ประกัน',
-      c5k: 'เสื้อวิ่ง, เหรียญที่ระลึก, BIB ชิปจับเวลา, อาหาร, ประกัน',
-      w10k: 'เสื้อวิ่ง, เหรียญพิเศษ, BIB ชิปจับเวลา, ผ้า Finisher, อาหาร, ประกัน',
+      v: [
+        'วิ่งคู่ได้ (มีจุดน้ำสำหรับน้องหมา)',
+        'วิ่งคู่ได้ (มีจุดน้ำสำหรับน้องหมา)',
+        'ประเภทบุคคล: สมัครวิ่งคู่น้องหมาที่ 1 หรือ 3 KM',
+        'ประเภทบุคคล: สมัครวิ่งคู่น้องหมาที่ 1 หรือ 3 KM',
+      ],
     },
   ];
 
@@ -104,92 +112,69 @@ export const DistanceComparisonModal: React.FC<DistanceComparisonModalProps> = (
           </button>
         </div>
 
-        {/* 3 Distances Top Summary Cards */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 sm:p-6 bg-[#FAF9FC] border-b border-gray-100">
-          {/* 3KM */}
-          <div className="p-3 sm:p-4 rounded-2xl bg-white border-2 border-[#2EAD62]/30 shadow-xs flex flex-col justify-between text-center">
-            <div>
-              <span className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-[#DFF5E8] text-[#2EAD62]">
-                ง่ายสำหรับทุกคน
-              </span>
-              <div className="text-xl sm:text-3xl font-black text-[#2EAD62] mt-1">3 KM</div>
-              <div className="text-[11px] sm:text-xs font-bold text-gray-600">FUN RUN</div>
-            </div>
-            <button
-              onClick={() => {
-                onClose();
-                onSelectRouteToRegister('3km');
-              }}
-              className="mt-3 bg-[#2EAD62] hover:bg-[#259451] text-white text-xs font-black py-2 px-2 rounded-xl transition-all shadow cursor-pointer"
+        {/* 4 ticket summary cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 p-4 sm:p-6 bg-[#FAF9FC] border-b border-gray-100">
+          {columns.map((c) => (
+            <div
+              key={c.id}
+              className="p-3 sm:p-4 rounded-2xl bg-white border-2 shadow-xs flex flex-col justify-between text-center"
+              style={{ borderColor: c.color + '66' }}
             >
-              เลือกสมัคร 3 KM
-            </button>
-          </div>
-
-          {/* 5KM */}
-          <div className="p-3 sm:p-4 rounded-2xl bg-white border-2 border-[#EF5350]/30 shadow-xs flex flex-col justify-between text-center">
-            <div>
-              <span className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-red-50 text-[#EF5350]">
-                ระดับปานกลาง
-              </span>
-              <div className="text-xl sm:text-3xl font-black text-[#EF5350] mt-1">5 KM</div>
-              <div className="text-[11px] sm:text-xs font-bold text-gray-600">CHALLENGE RUN</div>
+              <div>
+                <span
+                  className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full"
+                  style={{ background: c.soft, color: c.color }}
+                >
+                  {c.chip}
+                </span>
+                <div className="text-xl sm:text-3xl font-black mt-1" style={{ color: c.color }}>
+                  {c.short}
+                </div>
+                <div className="text-[11px] sm:text-xs font-bold text-gray-600">{c.sub}</div>
+              </div>
+              <button
+                onClick={() => {
+                  onClose();
+                  onSelectRouteToRegister(c.id);
+                }}
+                className="mt-3 text-white text-xs font-black py-2 px-2 rounded-xl transition-all shadow cursor-pointer hover:brightness-95"
+                style={{ background: c.color }}
+              >
+                เลือกสมัคร {c.short}
+              </button>
             </div>
-            <button
-              onClick={() => {
-                onClose();
-                onSelectRouteToRegister('5km');
-              }}
-              className="mt-3 bg-[#EF5350] hover:bg-[#d94340] text-white text-xs font-black py-2 px-2 rounded-xl transition-all shadow cursor-pointer"
-            >
-              เลือกสมัคร 5 KM
-            </button>
-          </div>
-
-          {/* 10KM */}
-          <div className="p-3 sm:p-4 rounded-2xl bg-white border-2 border-[#7B3FC6]/30 shadow-xs flex flex-col justify-between text-center">
-            <div>
-              <span className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-[#EEE4FA] text-[#7B3FC6]">
-                ท้าทาย & เทรล
-              </span>
-              <div className="text-xl sm:text-3xl font-black text-[#7B3FC6] mt-1">10 KM</div>
-              <div className="text-[11px] sm:text-xs font-bold text-gray-600">WAR DOG TRAIL</div>
-            </div>
-            <button
-              onClick={() => {
-                onClose();
-                onSelectRouteToRegister('10km');
-              }}
-              className="mt-3 bg-[#7B3FC6] hover:bg-[#54239A] text-white text-xs font-black py-2 px-2 rounded-xl transition-all shadow cursor-pointer"
-            >
-              เลือกสมัคร 10 KM
-            </button>
-          </div>
+          ))}
         </div>
 
         {/* Comparison Table */}
         <div className="p-4 sm:p-6 overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm border-collapse">
+          <table className="w-full min-w-[640px] text-left text-xs sm:text-sm border-collapse">
             <thead>
               <tr className="border-b-2 border-gray-200 text-gray-500">
-                <th className="py-2.5 px-3 font-black text-gray-800 w-1/4">เกณฑ์การเปรียบเทียบ</th>
-                <th className="py-2.5 px-3 font-black text-[#2EAD62] w-1/4">3 KM (FUN RUN)</th>
-                <th className="py-2.5 px-3 font-black text-[#EF5350] w-1/4">5 KM (CHALLENGE)</th>
-                <th className="py-2.5 px-3 font-black text-[#7B3FC6] w-1/4">10 KM (WAR DOG)</th>
+                <th className="py-2.5 px-3 font-black text-gray-800 w-[20%]">เกณฑ์การเปรียบเทียบ</th>
+                {columns.map((c) => (
+                  <th key={c.id} className="py-2.5 px-3 font-black w-[20%]" style={{ color: c.color }}>
+                    {c.short} ({c.sub})
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {comparisonData.map((row, idx) => {
                 const Icon = row.icon;
                 return (
-                  <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="py-3 px-3 font-bold text-gray-800 flex items-center gap-1.5">
-                      <Icon className="w-4 h-4 text-[#7B3FC6] flex-shrink-0" />
-                      <span>{row.label}</span>
+                  <tr key={idx} className="hover:bg-gray-50/80 transition-colors align-top">
+                    <td className="py-3 px-3 font-bold text-gray-800">
+                      <span className="flex items-center gap-1.5">
+                        <Icon className="w-4 h-4 text-[#7B3FC6] flex-shrink-0" />
+                        <span>{row.label}</span>
+                      </span>
                     </td>
-                    <td className="py-3 px-3 text-gray-700 font-medium">{row.f3k}</td>
-                    <td className="py-3 px-3 text-gray-700 font-medium">{row.c5k}</td>
-                    <td className="py-3 px-3 text-gray-700 font-medium">{row.w10k}</td>
+                    {row.v.map((cell, i) => (
+                      <td key={i} className="py-3 px-3 text-gray-700 font-medium">
+                        {cell}
+                      </td>
+                    ))}
                   </tr>
                 );
               })}

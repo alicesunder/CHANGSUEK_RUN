@@ -12,6 +12,11 @@ export interface RunnerProfile {
   shirtSize: string;
   runningWithDog: boolean;
   dogBreed?: string;
+  dogName?: string;
+  extraPeople?: number;
+  extraDogs?: number;
+  extraRunnerNames?: string;
+  totalPrice?: number;
   registrationStatus: 'REGISTERED' | 'CONFIRMED' | 'CHECKED_IN';
   createdAt: string;
 }

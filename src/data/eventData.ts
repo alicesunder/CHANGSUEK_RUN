@@ -91,16 +91,85 @@ export const safetyContacts: SafetyContact[] = [
 
 // Route definitions based on official Google Earth survey
 export const routesData: Record<RouteId, RouteData> = {
+  '1km': {
+    id: '1km',
+    name: '1 KM DOG MINI RUN',
+    title: 'วิ่งเล่นกับน้องหมา ทางเรียบเลียบหาด (ไป-กลับ)',
+    distanceKm: 1.0,
+    measuredPerimeterKm: 1.03,
+    googleEarthSummary: 'เส้นทางไป-กลับเลียบหาดหน้าโรงแรม Sea Sand Sun ระยะรวมประมาณ 1.03 กม. (เส้นทางตัวอย่างระหว่างรอรับรอง GPS Track)',
+    color: '#FF8A3D',
+    tagline: 'วิ่งเล่นสบาย ๆ เหมาะกับลูกหมา น้องหมาสูงวัย และเด็กเล็ก',
+    type: 'Beach Path ไป-กลับ (ทางเรียบเลียบหาด)',
+    difficulty: 'ง่าย (Easy)',
+    durationEstimate: '10 - 20 นาที',
+    startTime: '07:00 น. (เวลาโดยประมาณ)',
+    cutoffTime: '07:45 น. (45 นาที)',
+    description:
+      'เส้นทางสั้นสำหรับคู่วิ่งสี่ขาที่อยากเริ่มต้นแบบสบาย ๆ ปล่อยตัวจากชายหาดหน้าโรงแรม Sea Sand Sun วิ่งเลียบหาดไปจุดกลับตัวแล้ววิ่งกลับมาเข้าเส้นชัยที่เดิม ไม่มีเนินชัน มีร่มเงาต้นสนบางช่วง',
+    terrainType: 'ทางเลียบหาดค่ายนเรศวร พื้นเรียบ ไม่มีเนินชัน',
+    roadCondition: 'ทางเรียบ 100% ปิดการจราจร มีเจ้าหน้าที่ดูแลที่จุดกลับตัว',
+    recommendedFor: 'น้องหมาตัวเล็ก ลูกหมา น้องหมาสูงวัย เด็กเล็ก และคนที่เพิ่งเริ่มพาสุนัขออกกำลังกาย',
+    waterStationCount: 1,
+    medicalStationCount: 1,
+    safetyNotes: 'มีน้ำดื่มสำหรับคนและสุนัขที่จุดกลับตัว (กม. 0.5) พร้อมทีมสัตวแพทย์อาสาประจำงาน',
+    coordinates: [
+      [12.69660, 99.96380],
+      [12.69670, 99.96460],
+      [12.69650, 99.96540],
+      [12.69570, 99.96740],
+      [12.69544, 99.96818],
+      [12.69562, 99.96818],
+      [12.69588, 99.96740],
+      [12.69668, 99.96540],
+      [12.69688, 99.96460],
+      [12.69660, 99.96380],
+    ],
+    elevation: [
+      { distanceKm: 0.0, elevationM: 4, elevationMeters: 4, surface: 'ทางเลียบหาด' },
+      { distanceKm: 0.5, elevationM: 5, elevationMeters: 5, surface: 'จุดกลับตัว' },
+      { distanceKm: 1.03, elevationM: 4, elevationMeters: 4, surface: 'เส้นชัยริมหาด' },
+    ],
+    elevationProfile: [
+      { distanceKm: 0.0, elevationM: 4, elevationMeters: 4, surface: 'ทางเลียบหาด' },
+      { distanceKm: 0.5, elevationM: 5, elevationMeters: 5, surface: 'จุดกลับตัว' },
+      { distanceKm: 1.03, elevationM: 4, elevationMeters: 4, surface: 'เส้นชัยริมหาด' },
+    ],
+    landmarks: [
+      {
+        id: 'start-finish-1k',
+        name: 'START / FINISH จุดปล่อยตัวและเส้นชัย',
+        nameEn: 'Start & Finish Area (Sea Sand Sun Beach)',
+        description: 'บริเวณชายหาดหน้าโรงแรม Sea Sand Sun ค่ายนเรศวร',
+        type: 'start_finish',
+        distanceFromStartKm: 0,
+        latitude: 12.6966,
+        longitude: 99.9638,
+        services: ['จุดลงทะเบียน', 'จุดรับฝากของ', 'หน่วยแพทย์หลัก', 'ซุ้มน้ำสำหรับน้องหมา'],
+      },
+      {
+        id: 'turnaround-1k',
+        name: 'จุดกลับตัว + น้ำดื่มคนและสุนัข',
+        nameEn: 'Turnaround & Pet Water Point',
+        description: 'จุดกลับตัวเลียบหาด พร้อมน้ำดื่มสำหรับคนและน้องหมา',
+        type: 'water',
+        distanceFromStartKm: 0.5,
+        latitude: 12.69544,
+        longitude: 99.96818,
+        services: ['น้ำดื่ม', 'น้ำสำหรับสุนัข', 'สัตวแพทย์อาสา'],
+      },
+    ],
+  },
   '3km': {
     id: '3km',
-    name: '3 KM FUN RUN',
-    title: 'วิ่งเพื่อสุขภาพและครอบครัว (รอบแกนกลางค่ายนเรศวร)',
+    name: '3 KM DOG RUN',
+    title: 'วิ่งคู่น้องหมา รอบแกนกลางค่ายนเรศวร',
     distanceKm: 3.0,
     measuredPerimeterKm: 4.08,
     measuredAreaSqM: 631710.65,
     googleEarthSummary: 'รังวัดจากภาพถ่ายดาวเทียม Google Earth: เส้นขอบรอบทิศ 4.08 กม. (พื้นที่รูปหลายเหลี่ยม 631,710.65 ม²)',
     color: '#2EAA59',
-    tagline: 'เหมาะสำหรับครอบครัว ผู้เริ่มต้น และเพื่อนสี่ขา',
+    tagline: 'วิ่งคู่เพื่อนสี่ขา เหมาะกับครอบครัวและผู้เริ่มต้น',
     type: 'Road & Coastal Path (ทางเรียบเลียบทะเลและถนนค่าย)',
     difficulty: 'ง่าย (Easy)',
     durationEstimate: '25 - 45 นาที',
@@ -221,7 +290,7 @@ export const routesData: Record<RouteId, RouteData> = {
   },
   '5km': {
     id: '5km',
-    name: '5 KM CHALLENGE RUN',
+    name: '5 KM RUN',
     title: 'วิ่งท้าทายเต็มรอบค่ายนเรศวร (5.2 กม. Google Earth)',
     distanceKm: 5.0,
     measuredPerimeterKm: 5.20,
@@ -362,7 +431,7 @@ export const routesData: Record<RouteId, RouteData> = {
   },
   '10km': {
     id: '10km',
-    name: '10 KM WAR DOG TRAIL',
+    name: '10 KM RUN',
     title: 'เส้นทางมินิมาราธอนผสมเทรล (10.52 กม. Google Earth)',
     distanceKm: 10.0,
     measuredPerimeterKm: 10.52,
@@ -538,176 +607,7 @@ export const routesData: Record<RouteId, RouteData> = {
       },
     ],
   },
-  '21km': {
-    id: '21km',
-    name: '21 KM HALF MARATHON',
-    title: 'ฮาล์ฟมาราธอน ชายหาดชะอำ-หัวหิน & ค่ายนเรศวร (GPS Survey)',
-    distanceKm: 21.1,
-    measuredPerimeterKm: 21.10,
-    measuredAreaSqM: 1854200.00,
-    googleEarthSummary: 'รังวัด GPS สำรวจ: เส้นทางฮาล์ฟมาราธอนเลียบชายหาดชะอำ-หัวหิน วนรอบค่ายนเรศวร และอุทยานสิ่งแวดล้อมนานาชาติสิรินธร',
-    color: '#D97706',
-    tagline: 'ทดสอบขีดจำกัดความแข็งแกร่ง วิ่งเลียบชายหาดรับอรุณ 21.1 กิโลเมตร',
-    type: 'Road & Scenic Coastal (ถนนลาดยางเรียบเลียบทะเล 90% และทางค่าย 10%)',
-    difficulty: 'ท้าทาย (Challenging)',
-    durationEstimate: '1.45 - 3.30 ชั่วโมง',
-    startTime: '05:30 น.',
-    cutoffTime: '09:00 น. (3.30 ชั่วโมง)',
-    description:
-      'เส้นทางฮาล์ฟมาราธอน ปล่อยตัวจากชายหาดหน้า Sea Sand Sun ค่ายนเรศวร วิ่งเลียบชายหาดรับลมทะเลมุ่งลงทิศใต้เลียบแนวสนชายหาดชะอำตอนล่าง เลี้ยวกลับตัว กม. 5.5 วิ่งย้อนขึ้นเหนือผ่านถนนเลียบทะเล วนเข้าสู่ลานพระบรมราชานุสาวรีย์สมเด็จพระนเรศวรมหาราช สวนป่าชายเลนทูลกระหม่อม อุทยานสิ่งแวดล้อมนานาชาติสิรินธร เขตพระราชนิเวศน์มฤคทายวัน และกลับสู่เส้นชัยริมทะเล',
-    terrainType: 'ทางเรียบเลียบทะเลและถนนค่าย ไม่มีเนินสูง ลมทะเลเย็นสบายตลอดเส้นทาง',
-    roadCondition: 'ปิดการจราจร 100% มีกรวยยางและไฟส่องสว่างนำทางช่วงเช้ามืด พร้อมจุดให้น้ำทุก 2-2.5 กม.',
-    recommendedFor: 'นักวิ่งระยะฮาล์ฟมาราธอนที่ต้องการทำสถิติ New PB หรือซ้อมทางเรียบวิวทะเล',
-    waterStationCount: 8,
-    medicalStationCount: 5,
-    safetyNotes: 'มีหน่วยพยาบาลและรถกู้ชีพเคลื่อนที่เร็ว 5 คัน พร้อมเครื่องกระตุกหัวใจ AED ทุก 3 กม.',
-    coordinates: [
-      [12.6966, 99.9638], // Start: Sea Sand Sun Beach
-      [12.6967, 99.9646],
-      [12.6965, 99.9654],
-      [12.6957, 99.9674],
-      [12.6948, 99.9701],
-      [12.6937, 99.9700],
-      [12.6931, 99.9727], // กองร้อยฝึกรบพิเศษ
-      [12.6920, 99.9733],
-      [12.6908, 99.9733],
-      [12.6896, 99.9731],
-      [12.6888, 99.9728],
-      [12.6853, 99.9688], // พระบรมราชานุสาวรีย์สมเด็จพระนเรศวรฯ
-      [12.6812, 99.9675], // South coastal road towards Radisson
-      [12.6782, 99.9664], // Radisson Hua Hin Area (KM 3.8)
-      [12.6740, 99.9650], // South beach strip
-      [12.6700, 99.9640], // KM 5.5 Turnaround point
-      [12.6740, 99.9650], // Return northbound
-      [12.6782, 99.9664],
-      [12.6812, 99.9675],
-      [12.6845, 99.9664],
-      [12.6855, 99.9621], // South lake road
-      [12.6876, 99.9628],
-      [12.6885, 99.9575], // West connecting road towards Sirindhorn
-      [12.6910, 99.9540],
-      [12.6935, 99.9500], // Sirindhorn Environmental Park
-      [12.6955, 99.9460],
-      [12.6978, 99.9434], // Mangrove Forest Park
-      [12.7003, 99.9468], // Mrigadayavan Palace proximity
-      [12.6980, 99.9530], // North perimeter return road
-      [12.6950, 99.9580],
-      [12.6933, 99.9605], // Mental Toughness & Dog training area
-      [12.6946, 99.9626],
-      [12.6953, 99.9626],
-      [12.6966, 99.9638], // Finish
-    ],
-    elevation: [
-      { distanceKm: 0.0, elevationM: 4, elevationMeters: 4, surface: 'คอนกรีตเลียบหาด' },
-      { distanceKm: 2.5, elevationM: 5, elevationMeters: 5, surface: 'ทางเลียบหาดแนวสน' },
-      { distanceKm: 5.5, elevationM: 4, elevationMeters: 4, surface: 'จุดกลับตัวหาดชะอำใต้' },
-      { distanceKm: 8.5, elevationM: 6, elevationMeters: 6, surface: 'ลานอนุสาวรีย์ฯ' },
-      { distanceKm: 12.0, elevationM: 7, elevationMeters: 7, surface: 'อุทยานสิรินธร' },
-      { distanceKm: 16.0, elevationM: 5, elevationMeters: 5, surface: 'สะพานป่าชายเลน' },
-      { distanceKm: 18.5, elevationM: 5, elevationMeters: 5, surface: 'ถนนเลียบพระราชนิเวศน์' },
-      { distanceKm: 21.1, elevationM: 4, elevationMeters: 4, surface: 'เส้นชัยริมทะเล' },
-    ],
-    elevationProfile: [
-      { distanceKm: 0.0, elevationM: 4, elevationMeters: 4, surface: 'เลียบหาด' },
-      { distanceKm: 2.5, elevationM: 5, elevationMeters: 5, surface: 'ทางเลียบหาดแนวสน' },
-      { distanceKm: 5.5, elevationM: 4, elevationMeters: 4, surface: 'จุดกลับตัวหาดชะอำใต้' },
-      { distanceKm: 8.5, elevationM: 6, elevationMeters: 6, surface: 'ลานอนุสาวรีย์ฯ' },
-      { distanceKm: 12.0, elevationM: 7, elevationMeters: 7, surface: 'อุทยานสิรินธร' },
-      { distanceKm: 16.0, elevationM: 5, elevationMeters: 5, surface: 'สะพานป่าชายเลน' },
-      { distanceKm: 18.5, elevationM: 5, elevationMeters: 5, surface: 'ถนนเลียบพระราชนิเวศน์' },
-      { distanceKm: 21.1, elevationM: 4, elevationMeters: 4, surface: 'เส้นชัยริมทะเล' },
-    ],
-    landmarks: [
-      {
-        id: 'start-finish-21k',
-        name: 'START / FINISH จุดปล่อยตัวและเส้นชัย',
-        nameEn: 'Start & Finish Area',
-        description: 'บริเวณชายหาดหน้าโรงแรม Sea Sand Sun ค่ายนเรศวร',
-        type: 'start_finish',
-        distanceFromStartKm: 0,
-        latitude: 12.6966,
-        longitude: 99.9638,
-        services: ['จุดลงทะเบียน', 'ซุ้มอาหารเครื่องดื่ม', 'จุดรับฝากของ', 'หน่วยแพทย์ใหญ่'],
-      },
-      {
-        id: 'water-1-21k',
-        name: 'จุดบริการน้ำดื่ม 1 (กม. 2.5)',
-        nameEn: 'Water Station 1 (KM 2.5)',
-        description: 'กองร้อยฝึกรบพิเศษ เลียบแนวสนชายหาด',
-        type: 'water',
-        distanceFromStartKm: 2.5,
-        latitude: 12.6931,
-        longitude: 99.9727,
-        services: ['น้ำดื่ม', 'เกลือแร่', 'ฟองน้ำเย็น'],
-      },
-      {
-        id: 'turnaround-21k',
-        name: 'จุดกลับตัวฮาล์ฟมาราธอน & จุดน้ำ 2 (กม. 5.5)',
-        nameEn: 'Half Marathon Turnaround & Water Station 2',
-        description: 'จุดกลับตัวชายหาดชะอำตอนล่าง พร้อมชิปจับเวลาและหน่วยแพทย์',
-        type: 'checkpoint',
-        distanceFromStartKm: 5.5,
-        latitude: 12.6700,
-        longitude: 99.9640,
-        services: ['จุดกลับตัว Checkpoint', 'น้ำดื่ม', 'เกลือแร่', 'กล้วยหอม', 'หน่วยปฐมพยาบาล'],
-      },
-      {
-        id: 'water-3-21k',
-        name: 'จุดบริการน้ำดื่ม 3 & พยาบาล (กม. 8.5)',
-        nameEn: 'Water Station 3 & Medical (KM 8.5)',
-        description: 'พระบรมราชานุสาวรีย์สมเด็จพระนเรศวรมหาราช',
-        type: 'water',
-        distanceFromStartKm: 8.5,
-        latitude: 12.6853,
-        longitude: 99.9688,
-        services: ['น้ำดื่ม', 'เกลือแร่', 'สเปรย์คลายกล้ามเนื้อ', 'รถพยาบาลฉุกเฉิน'],
-      },
-      {
-        id: 'water-4-21k',
-        name: 'จุดบริการน้ำดื่ม 4 (กม. 11.0)',
-        nameEn: 'Water Station 4 (KM 11.0)',
-        description: 'ถนนเชื่อมฝั่งตะวันตก ทะลุสู่อุทยานสิ่งแวดล้อมสิรินธร',
-        type: 'water',
-        distanceFromStartKm: 11.0,
-        latitude: 12.6885,
-        longitude: 99.9575,
-        services: ['น้ำดื่ม', 'เกลือแร่', 'ผ้าเย็น'],
-      },
-      {
-        id: 'sirindhorn-park-21k',
-        name: 'อุทยานสิ่งแวดล้อมนานาชาติสิรินธร & จุดน้ำ 5 (กม. 13.5)',
-        nameEn: 'The Sirindhorn Environmental Park & Water Station 5',
-        description: 'ศูนย์เรียนรู้พลังงานและสิ่งแวดล้อมสากล พร้อมจุดปฐมพยาบาลหลัก',
-        type: 'water',
-        distanceFromStartKm: 13.5,
-        latitude: 12.6935,
-        longitude: 99.9500,
-        services: ['น้ำดื่ม', 'เกลือแร่', 'เจลพลังงาน', 'หน่วยแพทย์ AED'],
-      },
-      {
-        id: 'mangrove-forest-21k',
-        name: 'สวนป่าชายเลนทูลกระหม่อม (กม. 16.0)',
-        nameEn: 'Thunkramom Mangrove Forest Park',
-        description: 'สะพานไม้ชมป่าชายเลนธรรมชาติและจุดถ่ายภาพไฮไลท์',
-        type: 'photo',
-        distanceFromStartKm: 16.0,
-        latitude: 12.6978,
-        longitude: 99.9434,
-        services: ['จุดถ่ายภาพช่างภาพมืออาชีพ', 'น้ำดื่ม', 'หน่วยกู้ชีพ'],
-      },
-      {
-        id: 'palace-21k',
-        name: 'เขตพระราชนิเวศน์มฤคทายวัน & จุดน้ำ 7 (กม. 18.5)',
-        nameEn: 'Mrigadayavan Palace Area & Water Station 7',
-        description: 'ทางร่มรื่นใต้ทิวสนและแมกไม้โบราณเข้าสู่ถนนค่าย',
-        type: 'water',
-        distanceFromStartKm: 18.5,
-        latitude: 12.7003,
-        longitude: 99.9468,
-        services: ['น้ำดื่ม', 'เกลือแร่', 'ผ้าเย็น', 'รถกู้ชีพ'],
-      },
-    ],
-  },
+
 };
 
 // Accommodations near Naresuan Camp (Merged from Agoda, Booking.com, Traveloka, Expedia, Trip)
@@ -1196,3 +1096,88 @@ export const raceRules = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Ticket categories & pricing (single source of truth for every price on the site)
+// Individual: 5 KM, 10 KM  |  Dog + owner: 1 KM, 3 KM
+// ---------------------------------------------------------------------------
+export type TicketGroup = 'individual' | 'dog';
+
+export interface TicketCategory {
+  id: RouteId;
+  group: TicketGroup;
+  distanceLabel: string; // e.g. '5K'
+  name: string;
+  subtitle: string;
+  basePrice: number; // THB — individual: per runner / dog: 1 person + 1 dog
+  baseLabel: string; // what the base price covers
+  addPersonPrice?: number; // THB per extra person (dog categories only)
+  addDogPrice?: number; // THB per extra dog (dog categories only)
+  badge?: string;
+  emoji: string;
+}
+
+export const ticketCategories: TicketCategory[] = [
+  {
+    id: '5km',
+    group: 'individual',
+    distanceLabel: '5K',
+    name: '5 KM วิ่งบุคคลทั่วไป',
+    subtitle: 'ก้าวแรกสู่สุขภาพที่ดี',
+    basePrice: 690,
+    baseLabel: 'ต่อ 1 คน',
+    badge: 'ยอดนิยม',
+    emoji: '👟',
+  },
+  {
+    id: '10km',
+    group: 'individual',
+    distanceLabel: '10K',
+    name: '10 KM วิ่งบุคคลทั่วไป',
+    subtitle: 'ท้าทายตัวเอง ไปให้ไกลกว่าเดิม',
+    basePrice: 890,
+    baseLabel: 'ต่อ 1 คน',
+    emoji: '🏃',
+  },
+  {
+    id: '1km',
+    group: 'dog',
+    distanceLabel: '1K',
+    name: '1 KM วิ่งคู่น้องหมา',
+    subtitle: 'วิ่งเล่นสบาย ๆ เหมาะกับทุกวัย',
+    basePrice: 790,
+    baseLabel: '1 คน + 1 น้องหมา',
+    addPersonPrice: 450,
+    addDogPrice: 250,
+    badge: 'เริ่มต้นง่าย',
+    emoji: '🐶',
+  },
+  {
+    id: '3km',
+    group: 'dog',
+    distanceLabel: '3K',
+    name: '3 KM วิ่งคู่น้องหมา',
+    subtitle: 'คนกับน้องหมา วิ่งเคียงข้างกัน',
+    basePrice: 890,
+    baseLabel: '1 คน + 1 น้องหมา',
+    addPersonPrice: 500,
+    addDogPrice: 300,
+    emoji: '🐕',
+  },
+];
+
+export const ticketById = (id: RouteId): TicketCategory =>
+  ticketCategories.find((t) => t.id === id) ?? ticketCategories[0];
+
+export const isDogCategory = (id: RouteId) => ticketById(id).group === 'dog';
+
+export const formatBaht = (n: number) => `${n.toLocaleString('th-TH')} บาท`;
+
+export const calcTicketTotal = (id: RouteId, extraPeople = 0, extraDogs = 0) => {
+  const t = ticketById(id);
+  return (
+    t.basePrice +
+    extraPeople * (t.addPersonPrice ?? 0) +
+    extraDogs * (t.addDogPrice ?? 0)
+  );
+};

@@ -51,7 +51,7 @@ export const EventGallery: React.FC = () => {
       id: 'g4',
       category: 'family',
       title: 'รอยยิ้มครอบครัวและเด็กๆ',
-      location: 'เส้นทาง 3 KM Fun Run',
+      location: 'เส้นทาง 3 KM Dog Run',
       description: 'คุณพ่อคุณแม่จูงมือลูกๆ วิ่งและเดินเก็บสะสมความทรงจำอันแสนอบอุ่นในเช้าวันหยุด',
       accent: '#EF5350',
       tag: 'Family Fun',

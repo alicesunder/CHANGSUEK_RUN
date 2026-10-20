@@ -19,8 +19,8 @@ export const PaceCalculatorModal: React.FC<PaceCalculatorModalProps> = ({
 
   if (!isOpen) return null;
 
-  const distanceKm = selectedRoute === '3km' ? 3.0 : selectedRoute === '5km' ? 5.0 : 10.0;
-  const cutOffMinutes = selectedRoute === '3km' ? 75 : selectedRoute === '5km' ? 90 : 135;
+  const distanceKm = selectedRoute === '1km' ? 1.0 : selectedRoute === '3km' ? 3.0 : selectedRoute === '5km' ? 5.0 : 10.0;
+  const cutOffMinutes = selectedRoute === '1km' ? 45 : selectedRoute === '3km' ? 75 : selectedRoute === '5km' ? 90 : 135;
 
   const totalPaceSeconds = paceMinutes * 60 + paceSeconds;
   const totalFinishSeconds = Math.round(totalPaceSeconds * distanceKm);
@@ -36,7 +36,7 @@ export const PaceCalculatorModal: React.FC<PaceCalculatorModalProps> = ({
 
   const isWithinCutoff = totalFinishSeconds <= cutOffMinutes * 60;
   const estimatedCalories = Math.round(distanceKm * 68); // average 68 kcal/km
-  const recommendedWater = selectedRoute === '3km' ? '150 - 250 มล.' : selectedRoute === '5km' ? '300 - 450 มล.' : '600 - 800 มล.';
+  const recommendedWater = selectedRoute === '1km' ? '100 - 150 มล.' : selectedRoute === '3km' ? '150 - 250 มล.' : selectedRoute === '5km' ? '300 - 450 มล.' : '600 - 800 มล.';
 
   const presets = [
     { label: '🚶 เดินชิลล์ / พาน้องหมาเดินเล่น', paceM: 10, paceS: 30 },
@@ -79,7 +79,18 @@ export const PaceCalculatorModal: React.FC<PaceCalculatorModalProps> = ({
             <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
               1. เลือกระยะทางที่คุณต้องการวิ่ง
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedRoute('1km')}
+                className={`py-2 px-2 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
+                  selectedRoute === '1km'
+                    ? 'border-[#FF8A3D] bg-[#FFE9DA] text-[#B4500F] shadow-sm'
+                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                🐾 Dog 1 KM
+              </button>
               <button
                 type="button"
                 onClick={() => setSelectedRoute('3km')}
@@ -89,7 +100,7 @@ export const PaceCalculatorModal: React.FC<PaceCalculatorModalProps> = ({
                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                3 KM Fun Run
+                🐾 Dog 3 KM
               </button>
               <button
                 type="button"
@@ -100,7 +111,7 @@ export const PaceCalculatorModal: React.FC<PaceCalculatorModalProps> = ({
                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                5 KM Challenge
+                5 KM
               </button>
               <button
                 type="button"
@@ -111,7 +122,7 @@ export const PaceCalculatorModal: React.FC<PaceCalculatorModalProps> = ({
                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                10 KM War Dog
+                10 KM
               </button>
             </div>
           </div>

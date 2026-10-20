@@ -5,8 +5,8 @@ import { eventInfo, routesData } from '../data/eventData';
 interface ArtworkViewerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultTab?: '3km' | '5km' | '10km' | 'map';
-  onOpenSimulation?: (id?: '3km' | '5km' | '10km') => void;
+  defaultTab?: '1km' | '3km' | '5km' | '10km' | 'map';
+  onOpenSimulation?: (id?: '1km' | '3km' | '5km' | '10km') => void;
   onOpenRunnerCenter?: () => void;
 }
 
@@ -17,11 +17,11 @@ export const ArtworkViewerModal: React.FC<ArtworkViewerModalProps> = ({
   onOpenSimulation,
   onOpenRunnerCenter,
 }) => {
-  const [activeTab, setActiveTab] = useState<'3km' | '5km' | '10km' | 'map'>(defaultTab);
+  const [activeTab, setActiveTab] = useState<'1km' | '3km' | '5km' | '10km' | 'map'>(defaultTab);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [copied, setCopied] = useState(false);
-  const [mapRouteId, setMapRouteId] = useState<'3km' | '5km' | '10km'>(
-    defaultTab === 'map' ? '3km' : (defaultTab as '3km' | '5km' | '10km')
+  const [mapRouteId, setMapRouteId] = useState<'1km' | '3km' | '5km' | '10km'>(
+    defaultTab === 'map' ? '3km' : (defaultTab as '1km' | '3km' | '5km' | '10km')
   );
 
   if (!isOpen) return null;
@@ -44,7 +44,7 @@ export const ArtworkViewerModal: React.FC<ArtworkViewerModalProps> = ({
     }
   };
 
-  const currentRouteData = activeTab === '3km' || activeTab === '5km' || activeTab === '10km' ? routesData[activeTab] : null;
+  const currentRouteData = activeTab === '1km' || activeTab === '3km' || activeTab === '5km' || activeTab === '10km' ? routesData[activeTab] : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
@@ -71,6 +71,18 @@ export const ArtworkViewerModal: React.FC<ArtworkViewerModalProps> = ({
             <div className="bg-black/40 p-1 rounded-xl flex items-center gap-1 border border-white/10 overflow-x-auto max-w-full">
               <button
                 onClick={() => {
+                  setActiveTab('1km');
+                  setMapRouteId('1km');
+                  handleResetZoom();
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === '1km' ? 'bg-[#FF8A3D] text-white' : 'text-white/70 hover:text-white'
+                }`}
+              >
+                ดาวเทียม Dog 1 KM
+              </button>
+              <button
+                onClick={() => {
                   setActiveTab('3km');
                   setMapRouteId('3km');
                   handleResetZoom();
@@ -79,7 +91,7 @@ export const ArtworkViewerModal: React.FC<ArtworkViewerModalProps> = ({
                   activeTab === '3km' ? 'bg-[#2EAA59] text-white' : 'text-white/70 hover:text-white'
                 }`}
               >
-                ดาวเทียม 3 KM (4.08k)
+                ดาวเทียม Dog 3 KM (4.08k)
               </button>
               <button
                 onClick={() => {
