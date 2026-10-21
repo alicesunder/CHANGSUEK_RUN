@@ -1,22 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
 import { RouteId } from '../types';
+import { routesData } from '../data/eventData';
 import {
-  ChevronRight,
-  Ticket,
-  UserCheck,
-  Flag,
-  Mic,
+  ArrowRight,
   Award,
-  Calendar,
-  MapPin,
-  Crown,
-  Printer,
-  FileDown,
   Clock,
+  Crosshair,
+  Droplets,
+  Flag,
+  MapPin,
+  Mountain,
+  Music,
+  Play,
+  Printer,
   Sparkles,
-  CheckCircle2,
+  Trophy,
+  Wind,
   X,
 } from 'lucide-react';
+import { PawIcon } from './brand/DogDecor';
 
 interface RouteAndScheduleProps {
   selectedRoute?: RouteId;
@@ -26,521 +29,599 @@ interface RouteAndScheduleProps {
 }
 
 export const RouteAndScheduleSection: React.FC<RouteAndScheduleProps> = ({
-  selectedRoute,
+  selectedRoute = '5km',
   onSelectRoute,
-  onOpenArtworkModal,
   onOpenSimulation,
 }) => {
   const [printModalOpen, setPrintModalOpen] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const routeLayerRef = useRef<L.LayerGroup | null>(null);
 
-  const scheduleItems = [
+  const activeRouteData = routesData[selectedRoute] || routesData['5km'];
+
+  // Initialize embedded Leaflet preview map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
+
+    const map = L.map(mapContainerRef.current, {
+      center: [12.6928, 99.9685],
+      zoom: 15,
+      zoomControl: false,
+      attributionControl: false,
+      scrollWheelZoom: false,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+    const layerGroup = L.layerGroup().addTo(map);
+    routeLayerRef.current = layerGroup;
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, []);
+
+  // Update route polyline and markers whenever selectedRoute changes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const group = routeLayerRef.current;
+    if (!map || !group) return;
+
+    group.clearLayers();
+    const coords = activeRouteData.coordinates;
+    if (!coords || coords.length === 0) return;
+
+    L.polyline(coords, {
+      color: '#FFFFFF',
+      weight: 9,
+      opacity: 0.9,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(group);
+
+    const routeLine = L.polyline(coords, {
+      color: '#7B3FC6',
+      weight: 5,
+      opacity: 0.95,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(group);
+
+    const startCoord = coords[0];
+    const startIcon = L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div style="width:34px;height:34px;border-radius:9999px;background:#3A1564;border:3px solid #FFC928;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);font-size:15px;">🐾</div>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+    });
+    L.marker(startCoord, { icon: startIcon })
+      .bindPopup(
+        `<b>จุดปล่อยตัว / เส้นชัย (${activeRouteData.distanceKm} กม.)</b><br/>หาดหน้าโรงแรม Sea Sand Sun ค่ายนเรศวร`
+      )
+      .addTo(group);
+
+    activeRouteData.landmarks.forEach((lm, idx) => {
+      if (idx === 0) return;
+      const bg =
+        lm.type === 'water'
+          ? '#0284C7'
+          : lm.type === 'medical'
+          ? '#EF4444'
+          : lm.type === 'photo'
+          ? '#7B3FC6'
+          : '#F59E0B';
+      const emoji =
+        lm.type === 'water'
+          ? '💧'
+          : lm.type === 'medical'
+          ? '⛑️'
+          : lm.type === 'photo'
+          ? '📸'
+          : '🐕';
+      const icon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div style="width:28px;height:28px;border-radius:9999px;background:${bg};border:2.5px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,0.25);font-size:13px;">${emoji}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+      L.marker([lm.latitude, lm.longitude], { icon })
+        .bindPopup(`<b>${lm.name}</b><br/>กม.ที่ ${lm.distanceFromStartKm}`)
+        .addTo(group);
+    });
+
+    map.fitBounds(routeLine.getBounds(), { padding: [28, 28] });
+  }, [selectedRoute, activeRouteData]);
+
+  const timelineRows = [
     {
-      time: '05:00',
-      title: 'ลงทะเบียน รับ Race Pack',
-      desc: 'รับหมายเลขวิ่ง เสื้อวิ่ง และอุปกรณ์การแข่งขัน (BIB & Race Kit Collection)',
-      icon: Ticket,
-      badge: null,
-      highlight: false,
+      id: 'dog-contest',
+      time: '09.00–14.00 น.',
+      title: 'การแข่งขันประกวดสุนัข',
+      desc: 'สุนัขแฟนซีธีม War Dog • สุนัขสุขภาพดี • สุนัขเชื่อฟังคำสั่ง',
+      badge: 'DOG CONTEST',
+      iconBg: '#FCE7F3',
+      iconColor: '#DB2777',
+      Icon: Trophy,
+      routeId: undefined as RouteId | undefined,
+      isGoldDot: false,
     },
     {
-      time: '05:30',
-      title: 'วอร์มอัพ (Warm-Up)',
-      desc: 'เตรียมร่างกายก่อนเข้าสู่สนาม พร้อมกิจกรรมอบอุ่นร่างกายโดยโค้ชผู้เชี่ยวชาญ',
-      icon: UserCheck,
-      badge: null,
-      highlight: false,
+      id: 'station-1',
+      time: '09.00–11.00 น.',
+      title: 'กิจกรรมสถานีที่ 1 กิจกรรมยิงปืน',
+      desc: '',
+      badge: 'STATION 1',
+      iconBg: '#E0F2FE',
+      iconColor: '#0284C7',
+      Icon: Crosshair,
+      routeId: undefined as RouteId | undefined,
+      isGoldDot: false,
     },
     {
-      time: '06:00',
-      title: 'ปล่อยตัว DOG RUN (3 KM)',
-      desc: 'วิ่งคู่น้องหมาริมชายหาดชะอำ บรรยากาศครอบครัวและสัตว์เลี้ยง',
-      icon: Flag,
-      badge: '3 KM 🐾',
-      highlight: false,
+      id: 'station-2',
+      time: '10.00–12.00 น.',
+      title: 'กิจกรรมสถานีที่ 2 กิจกรรมหอสูง',
+      desc: '',
+      badge: 'STATION 2',
+      iconBg: '#E0E7FF',
+      iconColor: '#4F46E5',
+      Icon: Mountain,
+      routeId: undefined as RouteId | undefined,
+      isGoldDot: false,
     },
     {
-      time: '06:10',
-      title: 'ปล่อยตัว DOG MINI RUN (1 KM)',
-      desc: 'วิ่งเล่นสบาย ๆ กับน้องหมา เหมาะกับลูกหมา น้องหมาสูงวัย และเด็กเล็ก',
-      icon: Flag,
-      badge: '1 KM 🐾',
-      highlight: false,
+      id: 'station-3',
+      time: '13.00–15.00 น.',
+      title: 'กิจกรรมสถานีที่ 3 กิจกรรมอุโมงค์ลม',
+      desc: '',
+      badge: 'STATION 3',
+      iconBg: '#CCFBF1',
+      iconColor: '#0D9488',
+      Icon: Wind,
+      routeId: undefined as RouteId | undefined,
+      isGoldDot: false,
     },
     {
-      time: '06:20',
-      title: 'ปล่อยตัววิ่งบุคคลทั่วไป (5 KM)',
-      desc: 'เริ่มก้าวแรกสู่สุขภาพที่ดี พร้อมสัมผัสไอทะเลและลมเช้า',
-      icon: Flag,
-      badge: '5 KM • ยอดนิยม',
-      highlight: true,
+      id: 'dog-awards',
+      time: '15.00–17.00 น.',
+      title: 'พิธีมอบรางวัลการประกวดสุนัข',
+      desc: 'ประกาศผลและมอบรางวัลแก่ผู้ชนะการแข่งขัน',
+      badge: 'AWARDS',
+      iconBg: '#FEF3C7',
+      iconColor: '#D97706',
+      Icon: Award,
+      routeId: undefined as RouteId | undefined,
+      isGoldDot: false,
     },
     {
-      time: '06:40',
-      title: 'ปล่อยตัววิ่งบุคคลทั่วไป (10 KM)',
-      desc: 'ท้าทายขีดจำกัดตัวเอง เส้นทางผ่านจุดประวัติศาสตร์ค่ายพระราม 6',
-      icon: Flag,
-      badge: '10 KM',
-      highlight: false,
+      id: 'start-10k',
+      time: '16.30 น.',
+      title: 'ปล่อยตัวนักวิ่ง 10 กิโลเมตร',
+      desc: 'ประเภทบุคคลทั่วไป',
+      badge: '10 KM RUN',
+      iconBg: '#F3E8FF',
+      iconColor: '#7B3FC6',
+      Icon: Flag,
+      routeId: '10km' as RouteId,
+      isGoldDot: true,
     },
     {
-      time: '09:00',
-      title: 'กิจกรรมบนเวที & ดนตรีสด',
-      desc: 'ความสนุก ความบันเทิง การแสดงดนตรีริมหาด และกิจกรรมพิเศษมากมาย',
-      icon: Mic,
-      badge: null,
-      highlight: false,
+      id: 'start-5k',
+      time: '17.00 น.',
+      title: 'ปล่อยตัวนักวิ่ง 5 กิโลเมตร',
+      desc: 'ประเภทบุคคลทั่วไป',
+      badge: '5 KM RUN',
+      iconBg: '#FEF3C7',
+      iconColor: '#D97706',
+      Icon: Flag,
+      routeId: '5km' as RouteId,
+      isGoldDot: true,
     },
     {
-      time: '10:00',
-      title: 'พิธีมอบรางวัล (Award Ceremony)',
-      desc: 'มอบถ้วยเกียรติยศและของที่ระลึกให้กับนักวิ่งทุกประเภทการแข่งขัน',
-      icon: Award,
-      badge: null,
-      highlight: false,
+      id: 'start-3k',
+      time: '17.15 น.',
+      title: 'ปล่อยตัวนักวิ่ง 3 กิโลเมตร',
+      desc: 'ประเภทวิ่งร่วมกับสุนัข',
+      badge: '3 KM DOG RUN',
+      iconBg: '#DCFCE7',
+      iconColor: '#15803D',
+      Icon: Flag,
+      routeId: '3km' as RouteId,
+      isGoldDot: true,
     },
     {
-      time: '11:00',
-      title: 'ปิดงาน (Closing Ceremony)',
-      desc: 'ขอบคุณนักวิ่งทุกคนที่ร่วมเป็นส่วนหนึ่งของครอบครัว CHANGSUEK RUN',
-      icon: Flag,
-      badge: null,
-      highlight: false,
+      id: 'start-1k',
+      time: '17.30 น.',
+      title: 'ปล่อยตัวนักวิ่ง 1 กิโลเมตร',
+      desc: 'ประเภทวิ่งร่วมกับสุนัข',
+      badge: '1 KM DOG RUN',
+      iconBg: '#FFEDD5',
+      iconColor: '#EA580C',
+      Icon: Flag,
+      routeId: '1km' as RouteId,
+      isGoldDot: true,
+    },
+    {
+      id: 'concert',
+      time: '17.30 น. เป็นต้นไป',
+      title: 'การแสดงดนตรีและคอนเสิร์ต',
+      desc: 'เปิดการแสดงโดยวงดนตรีตำรวจตระเวนชายแดน และการแสดงอื่น ๆ',
+      badge: 'CONCERT',
+      iconBg: '#EDE9FE',
+      iconColor: '#6D28D9',
+      Icon: Music,
+      routeId: undefined as RouteId | undefined,
+      isGoldDot: false,
     },
   ];
 
-  const handlePrintSchedule = () => {
-    window.print();
+  const routePills: {
+    id: RouteId;
+    label: string;
+    activeBg: string;
+    activeText: string;
+    idleBg: string;
+    idleText: string;
+  }[] = [
+    {
+      id: '10km',
+      label: '10K บุคคลทั่วไป (16.30 น.)',
+      activeBg: '#7B3FC6',
+      activeText: '#FFFFFF',
+      idleBg: '#EFE6FD',
+      idleText: '#5B20A8',
+    },
+    {
+      id: '5km',
+      label: '5K บุคคลทั่วไป (17.00 น.)',
+      activeBg: '#D97706',
+      activeText: '#FFFFFF',
+      idleBg: '#FEF3C7',
+      idleText: '#92400E',
+    },
+    {
+      id: '3km',
+      label: '3K วิ่งกับสุนัข (17.15 น.)',
+      activeBg: '#16A34A',
+      activeText: '#FFFFFF',
+      idleBg: '#DDF7EA',
+      idleText: '#15803D',
+    },
+    {
+      id: '1km',
+      label: '1K วิ่งกับสุนัข (17.30 น.)',
+      activeBg: '#EA580C',
+      activeText: '#FFFFFF',
+      idleBg: '#FFEDD5',
+      idleText: '#9A3412',
+    },
+  ];
+
+  const legendItems = [
+    { label: 'จุดปล่อยตัว / เส้นชัย', bg: '#4B1C8C', emoji: '🐾' },
+    { label: 'จุดให้น้ำ', bg: '#0284C7', emoji: '💧' },
+    { label: 'จุดปฐมพยาบาล', bg: '#EF4444', emoji: '⛑️' },
+    { label: 'จุดชมวิว', bg: '#7B3FC6', emoji: '📸' },
+    { label: 'จุดให้น้องพัก', bg: '#F59E0B', emoji: '🐕' },
+  ];
+
+  const scrollToFullMap = () => {
+    if (onOpenSimulation) {
+      onOpenSimulation(selectedRoute);
+      return;
+    }
+    const el = document.getElementById('interactive-map');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <section id="schedule-section" className="py-14 sm:py-20 bg-gradient-to-b from-[#FAF8FD] via-white to-[#F8F5FD] border-b border-purple-100/70 relative overflow-hidden">
-      {/* Decorative ambient gradients */}
-      <div className="absolute top-10 right-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 left-0 w-96 h-96 bg-amber-200/15 rounded-full blur-3xl pointer-events-none" />
+    <section
+      id="schedule-and-map"
+      className="py-12 sm:py-16 relative overflow-hidden scroll-mt-20"
+      style={{
+        background:
+          'linear-gradient(180deg, #EFE6FC 0%, #E0F2FE 48%, #FFF4D2 100%)',
+      }}
+    >
+      {/* Ambient Coastal Sun & Ocean Orbs */}
+      <div className="absolute -top-20 left-10 w-80 h-80 bg-[#7B3FC6]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-10 w-96 h-96 bg-[#FFC928]/25 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* ============================================================ */}
-        {/* 1. SCHEDULE SECTION (EXACTLY MATCHING USER'S REFERENCE IMAGE) */}
-        {/* ============================================================ */}
-        <div id="schedule" className="mb-16 sm:mb-20">
-          
-          {/* Header with Title on Left, Slogans and Runners on Right */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 sm:mb-10">
-            <div>
-              {/* Top Eyebrow with Purple-Yellow Accent Bar */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[11px] sm:text-xs font-black tracking-[0.2em] text-[#5B20A8] uppercase">
-                  RACE DAY SCHEDULE
-                </span>
-                <div className="flex items-center gap-1">
-                  <div className="w-6 h-0.5 bg-[#5B20A8] rounded-full" />
-                  <div className="w-3 h-0.5 bg-[#FFC928] rounded-full" />
-                </div>
-              </div>
-
-              {/* Main Heading */}
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1F1035] tracking-tight">
-                กำหนดการวันแข่งขัน
-              </h2>
-
-              {/* Subtitle */}
-              <p className="text-sm sm:text-base text-gray-600 font-medium mt-2">
-                ทุกช่วงเวลาสำคัญของวันแข่งขัน มาร่วมสร้างความทรงจำไปด้วยกัน
-              </p>
-            </div>
-
-            {/* Right Side Visual Header & Actions */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 self-start md:self-auto">
-              {/* Print Schedule Button */}
-              <button
-                onClick={() => setPrintModalOpen(true)}
-                className="print-hide inline-flex items-center gap-2 bg-white hover:bg-purple-50 text-[#5B20A8] border-2 border-purple-200 hover:border-[#5B20A8] text-xs sm:text-sm font-black px-4 py-2.5 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-95"
-                title="พิมพ์หรือบันทึกกำหนดการเป็น PDF"
-              >
-                <Printer className="w-4 h-4 text-[#5B20A8] group-hover:scale-110 transition-transform" />
-                <span>พิมพ์กำหนดการ (PDF)</span>
-              </button>
-
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <span className="block text-sm sm:text-base font-black italic tracking-wider text-[#5B20A8]">
-                    RUN TOGETHER
-                  </span>
-                  <span className="block text-xs sm:text-sm font-black italic tracking-wider text-[#E59C0E]">
-                    A BRIGHTER TOMORROW
-                  </span>
-                </div>
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#FAF5FF] to-[#F1E8FC] border border-purple-200/80 p-1 flex items-center justify-center shadow-xs overflow-hidden">
-                  <img
-                    src="/images/hero/changsuek-run-coastal.jpg"
-                    alt="Changsuek Runners and Elephant"
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                </div>
-              </div>
-            </div>
+      <div
+        id="schedule-section"
+        className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+      >
+        {/* Section Eyebrow Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
+          <div>
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white border-2 border-[#2A1450] text-[#5B20A8] text-xs font-extrabold uppercase tracking-wider shadow-[0_3px_0_#2A1450] mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <span>OFFICIAL SCHEDULE & GPS COURSE</span>
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#2A1450] tracking-tight">
+              กำหนดการ & เส้นทางวิ่งมาตรฐาน GPS
+            </h2>
           </div>
-
-          {/* MAIN SCHEDULE TICKET / TIMELINE CONTAINER */}
-          <div className="bg-white/95 rounded-[32px] sm:rounded-[36px] p-6 sm:p-10 border border-purple-100 shadow-[0_10px_35px_-8px_rgba(91,32,168,0.08)] relative">
-            
-            {/* Top Right Sub-brand Badge inside container */}
-            <div className="hidden sm:block absolute top-8 right-8 text-right pointer-events-none">
-              <span className="block text-[10px] font-black tracking-[0.2em] text-purple-400 uppercase">
-                CHANGSUEK RUN 2027
-              </span>
-              <span className="block text-[8px] font-bold tracking-widest text-gray-400 uppercase mt-0.5">
-                RUN FOR A KINDER WORLD
-              </span>
-              <div className="w-12 h-0.5 bg-amber-400 rounded-full ml-auto mt-1" />
-            </div>
-
-            {/* TIMELINE LIST */}
-            <div className="space-y-4 sm:space-y-5 relative">
-              
-              {/* Left Continuous Timeline Vertical Line */}
-              <div className="absolute left-[13px] sm:left-[17px] top-6 bottom-6 w-0.5 bg-purple-200/70" />
-
-              {/* ----------------- 05:00 ลงทะเบียน รับ Race Pack ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                {/* Timeline Dot */}
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                {/* Time Stamp */}
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  05:00
-                </span>
-
-                {/* Row Content Card */}
-                <div className="flex-1 bg-white hover:bg-[#FAF8FD] rounded-2xl p-3 sm:p-4 border border-transparent hover:border-purple-100 transition-all flex items-center gap-3.5 sm:gap-4">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                    <Ticket className="w-5 h-5 stroke-[2]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                      ลงทะเบียน รับ Race Pack
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-0.5">
-                      รับหมายเลขวิ่ง เสื้อวิ่ง และอุปกรณ์การแข่งขัน
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ----------------- 05:30 วอร์มอัพ ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  05:30
-                </span>
-
-                <div className="flex-1 bg-white hover:bg-[#FAF8FD] rounded-2xl p-3 sm:p-4 border border-transparent hover:border-purple-100 transition-all flex items-center gap-3.5 sm:gap-4">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                    <UserCheck className="w-5 h-5 stroke-[2]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                      วอร์มอัพ
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-0.5">
-                      เตรียมร่างกายก่อนเข้าสู่สนาม พร้อมกิจกรรมอบอุ่นร่างกาย
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ----------------- 06:00 ปล่อยตัว DOG RUN (3 KM) ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  06:00
-                </span>
-
-                {/* Styled Card with Distance Badge */}
-                <div className="flex-1 bg-[#FAF7FD]/80 hover:bg-[#FAF7FD] rounded-2xl p-3 sm:p-4 border border-purple-200/70 hover:border-purple-300 transition-all flex items-center justify-between gap-3 sm:gap-4">
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                      <Flag className="w-5 h-5 stroke-[2]" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-[#5B20A8] text-white text-[11px] font-black px-2.5 py-0.5 rounded-md shadow-2xs tracking-wider">
-                          3 KM
-                        </span>
-                        <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                          ปล่อยตัว DOG RUN
-                        </h3>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-1">
-                        วิ่งคู่น้องหมา สนุกได้ไกลกว่า
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-
-              {/* ----------------- 06:10 ปล่อยตัว DOG MINI RUN (1 KM) ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  06:10
-                </span>
-
-                {/* Styled Card with Distance Badge */}
-                <div className="flex-1 bg-[#FAF7FD]/80 hover:bg-[#FAF7FD] rounded-2xl p-3 sm:p-4 border border-purple-200/70 hover:border-purple-300 transition-all flex items-center justify-between gap-3 sm:gap-4">
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                      <Flag className="w-5 h-5 stroke-[2]" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-[#5B20A8] text-white text-[11px] font-black px-2.5 py-0.5 rounded-md shadow-2xs tracking-wider">
-                          1 KM
-                        </span>
-                        <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                          ปล่อยตัว DOG MINI RUN
-                        </h3>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-1">
-                        วิ่งเล่นสบาย ๆ กับน้องหมา ระยะสั้น
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* ----------------- 06:20 ปล่อยตัว 5 KM (HIGHLIGHTED CARD: ยอดนิยม) ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                {/* Radiant Highlight Timeline Dot */}
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-amber-400 flex items-center justify-center shrink-0 z-10 shadow-[0_0_12px_rgba(245,184,0,0.5)]">
-                  <div className="w-3 h-3 rounded-full bg-amber-400" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#E59C0E] font-mono w-14 sm:w-16 shrink-0">
-                  06:20
-                </span>
-
-                {/* Highlighted Yellow/Gold Card matching user design */}
-                <div className="flex-1 bg-gradient-to-r from-[#FFFBEF] via-[#FFF8E6] to-[#FFFBEF] rounded-2xl p-3.5 sm:p-4 border-2 border-[#F5B800] shadow-[0_6px_20px_rgba(245,184,0,0.22)] flex items-center justify-between gap-3 sm:gap-4 relative overflow-hidden">
-                  
-                  {/* Subtle decorative background glow */}
-                  <div className="absolute right-0 top-0 bottom-0 w-40 bg-gradient-to-l from-amber-200/20 to-transparent pointer-events-none" />
-
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 relative z-10">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-400/20 text-[#D48A06] flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
-                      <Flag className="w-5 h-5 stroke-[2.2]" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-[#F5B800] text-[#1F1035] text-[11px] font-black px-2.5 py-0.5 rounded-md shadow-2xs tracking-wider">
-                          5 KM
-                        </span>
-                        <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                          ปล่อยตัว 5 KM
-                        </h3>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-amber-900/80 font-medium mt-1">
-                        เริ่มก้าวแรก สู่สุขภาพที่ดี
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right "ยอดนิยม" Badge */}
-                  <div className="shrink-0 relative z-10">
-                    <span className="inline-flex items-center gap-1.5 bg-[#F5B800] text-[#1F1035] text-xs font-black px-3 py-1.5 rounded-xl shadow-xs">
-                      <Crown className="w-3.5 h-3.5" />
-                      <span>ยอดนิยม</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ----------------- 06:40 ปล่อยตัว 10 KM ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  06:40
-                </span>
-
-                <div className="flex-1 bg-[#FAF7FD]/80 hover:bg-[#FAF7FD] rounded-2xl p-3 sm:p-4 border border-purple-200/70 hover:border-purple-300 transition-all flex items-center justify-between gap-3 sm:gap-4">
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                      <Flag className="w-5 h-5 stroke-[2]" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-[#3D106B] text-white text-[11px] font-black px-2.5 py-0.5 rounded-md shadow-2xs tracking-wider">
-                          10 KM
-                        </span>
-                        <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                          ปล่อยตัว 10 KM
-                        </h3>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-1">
-                        ท้าทายตัวเอง ไปให้ไกลกว่าเดิม
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* ----------------- 09:00 กิจกรรมบนเวที ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  09:00
-                </span>
-
-                <div className="flex-1 bg-white hover:bg-[#FAF8FD] rounded-2xl p-3 sm:p-4 border border-transparent hover:border-purple-100 transition-all flex items-center gap-3.5 sm:gap-4">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                    <Mic className="w-5 h-5 stroke-[2]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                      กิจกรรมบนเวที
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-0.5">
-                      ความสนุก ความบันเทิง และกิจกรรมพิเศษมากมาย
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ----------------- 10:00 พิธีมอบรางวัล ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  10:00
-                </span>
-
-                <div className="flex-1 bg-white hover:bg-[#FAF8FD] rounded-2xl p-3 sm:p-4 border border-transparent hover:border-purple-100 transition-all flex items-center gap-3.5 sm:gap-4">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                    <Award className="w-5 h-5 stroke-[2]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                      พิธีมอบรางวัล
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-0.5">
-                      มอบรางวัลให้กับนักวิ่งทุกประเภท
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ----------------- 11:00 ปิดงาน ----------------- */}
-              <div className="flex items-center gap-3 sm:gap-6 relative group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white border-2 border-purple-400 flex items-center justify-center shrink-0 z-10 shadow-xs group-hover:border-[#5B20A8] transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5B20A8]" />
-                </div>
-
-                <span className="text-sm sm:text-base font-black text-[#1F1035] font-mono w-14 sm:w-16 shrink-0">
-                  11:00
-                </span>
-
-                <div className="flex-1 bg-white hover:bg-[#FAF8FD] rounded-2xl p-3 sm:p-4 border border-transparent hover:border-purple-100 transition-all flex items-center gap-3.5 sm:gap-4">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F4ECFD] text-[#5B20A8] flex items-center justify-center shrink-0 border border-purple-200/70 shadow-2xs">
-                    <Flag className="w-5 h-5 stroke-[2]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-[#1F1035] leading-tight">
-                      ปิดงาน
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-gray-500 font-medium mt-0.5">
-                      ขอบคุณทุกคนที่ร่วมเป็นส่วนหนึ่งของ CHANGSUEK RUN
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Quote slogan block from image on right side */}
-            <div className="hidden lg:block absolute bottom-28 right-10 text-right pointer-events-none">
-              <div className="font-serif italic text-2xl font-black text-[#261042] tracking-tight">
-                "เห็นช้างวิ่ง
-              </div>
-              <div className="font-serif italic text-2xl font-black text-[#5B20A8] tracking-tight">
-                วิ่งตามช้าง"
-              </div>
-              <div className="w-24 h-0.5 bg-[#FFC928] rounded-full ml-auto mt-2" />
-              <div className="text-[9px] font-black tracking-widest text-gray-400 uppercase mt-1">
-                MORE THAN A RUN · A BIGGER FAMILY
-              </div>
-            </div>
-
-            {/* Bottom Info Bar matching the card in user mockup */}
-            <div className="mt-8 pt-6 border-t border-purple-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              
-              <div className="flex flex-wrap items-center gap-6 sm:gap-8">
-                {/* 1. วันแข่งขัน */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#5B20A8] flex items-center justify-center border border-purple-200/80">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-gray-400 block font-medium">วันแข่งขัน</span>
-                    <span className="text-xs sm:text-sm font-black text-[#1F1035]">
-                      วันอาทิตย์ที่ 15 กุมภาพันธ์ 2569
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2. สถานที่จัดงาน */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#5B20A8] flex items-center justify-center border border-purple-200/80">
-                    <MapPin className="w-5 h-5 text-rose-500" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-gray-400 block font-medium">สถานที่จัดงาน</span>
-                    <span className="text-xs sm:text-sm font-black text-[#1F1035]">
-                      ค่ายพระราม 6 จ.เพชรบุรี
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Watermark note */}
-              <div className="text-right text-xs font-serif italic text-purple-300">
-                Phetchaburi
-              </div>
-            </div>
-
-          </div>
+          <p className="text-xs sm:text-sm font-bold text-[#4B2D78]">
+            คลิกที่ช่วงเวลาปล่อยตัว (16.30 - 17.30 น.) เพื่อดูพิกัดเส้นทางวิ่งแต่ละระยะได้ทันที
+          </p>
         </div>
 
+        {/* ================================================================ */}
+        {/* 2-COLUMN SIDE-BY-SIDE: SCHEDULE (LEFT) & GPS SURVEY MAP (RIGHT) */}
+        {/* ================================================================ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 items-stretch">
+          {/* -------------------------------------------------------------- */}
+          {/* LEFT CARD: กำหนดการ (OFFICIAL SCHEDULE)                        */}
+          {/* -------------------------------------------------------------- */}
+          <div
+            id="schedule"
+            className="lg:col-span-6 bg-white rounded-[32px] border-[3px] border-[#2A1450] shadow-[0_20px_42px_-16px_rgba(42,20,80,0.32),0_7px_0_#2A1450] flex flex-col justify-between overflow-hidden relative"
+          >
+            {/* Top Colorful Accent Bar */}
+            <div className="h-2 w-full bg-gradient-to-r from-[#5B20A8] via-[#FFC928] to-[#DB2777]" />
+
+            <div className="p-5 sm:p-7 flex-1 flex flex-col justify-between">
+              <div>
+                {/* Card Header */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b-2 border-dashed border-[#2A1450]/15">
+                  <div className="flex items-center gap-3.5">
+                    <span className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#5B20A8] to-[#3A1564] text-[#FFC928] border-2 border-[#2A1450] shadow-[2px_3px_0_#2A1450] flex items-center justify-center shrink-0">
+                      <PawIcon size={22} color="#FFC928" />
+                    </span>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-[#2A1450] leading-tight">
+                        กำหนดการ
+                      </h3>
+                      <span className="block text-[11px] font-mono font-extrabold tracking-[0.18em] text-[#7B3FC6] uppercase mt-0.5">
+                        EVENT SCHEDULE · 09.00 – 17.30+ น.
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setPrintModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#FFC928] hover:bg-[#F5B800] text-[#2A1450] border-2 border-[#2A1450] shadow-[0_3px_0_#2A1450] px-4 py-2 text-xs font-extrabold transition-transform hover:scale-105 cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>ดูตารางฉบับเต็ม (PDF)</span>
+                  </button>
+                </div>
+
+                {/* Timeline List with Bold Time Pills & Interactive Highlighting */}
+                <div className="mt-4 relative space-y-2">
+                  {/* Continuous Vertical Line */}
+                  <div
+                    aria-hidden="true"
+                    className="absolute left-[13px] top-4 bottom-4 w-[3px] bg-gradient-to-b from-[#7B3FC6] via-[#FFC928] to-[#16A34A] rounded-full"
+                  />
+
+                  {timelineRows.map((row) => {
+                    const Icon = row.Icon;
+                    const isSelectedRouteRow = row.routeId && row.routeId === selectedRoute;
+                    return (
+                      <div
+                        key={row.id}
+                        onClick={() => {
+                          if (row.routeId && onSelectRoute) {
+                            onSelectRoute(row.routeId);
+                          }
+                        }}
+                        className={`group relative flex items-start sm:items-center gap-2.5 sm:gap-3 py-2 px-2.5 rounded-2xl transition-all border ${
+                          row.routeId ? 'cursor-pointer' : ''
+                        } ${
+                          isSelectedRouteRow
+                            ? 'bg-gradient-to-r from-[#FFF9E5] to-[#F3E8FF] border-[#2A1450] shadow-[0_4px_0_#2A1450] -translate-y-0.5'
+                            : 'bg-[#FAF8FF]/90 hover:bg-white border-purple-100/80 hover:border-purple-300'
+                        }`}
+                      >
+                        {/* Timeline Node Ring */}
+                        <div
+                          className={`relative z-10 w-5 h-5 mt-1 sm:mt-0 rounded-full bg-white flex items-center justify-center shrink-0 border-2 ${
+                            row.isGoldDot
+                              ? 'border-[#D97706] shadow-[0_0_0_3px_rgba(245,184,0,0.28)]'
+                              : 'border-[#6D28D9]'
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              row.isGoldDot ? 'bg-[#F59E0B]' : 'bg-[#6D2FC4]'
+                            }`}
+                          />
+                        </div>
+
+                        {/* Bold Time Badge */}
+                        <span
+                          className={`px-2.5 py-1 rounded-xl font-mono text-[11px] sm:text-xs font-black tabular-nums shrink-0 border min-w-[104px] sm:min-w-[118px] text-center ${
+                            isSelectedRouteRow
+                              ? 'bg-[#2A1450] text-[#FFC928] border-[#2A1450]'
+                              : row.isGoldDot
+                              ? 'bg-[#FFF7D6] text-[#2A1450] border-[#F59E0B]/50'
+                              : 'bg-white text-[#2A1450] border-purple-200'
+                          }`}
+                        >
+                          {row.time}
+                        </span>
+
+                        {/* Pastel Icon Box */}
+                        <span
+                          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border border-white shadow-xs"
+                          style={{ background: row.iconBg, color: row.iconColor }}
+                        >
+                          <Icon className="w-4 h-4 stroke-[2.4]" />
+                        </span>
+
+                        {/* Activity Title & Subtitle */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs sm:text-sm font-extrabold text-[#2A1450] leading-snug">
+                            {row.title}
+                          </div>
+                          {row.desc && (
+                            <div className="text-[11px] text-[#5B4878] font-semibold leading-snug mt-0.5">
+                              {row.desc}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right Wave Tag */}
+                        <span
+                          className="hidden xl:inline-block text-[10px] font-extrabold px-2.5 py-1 rounded-full shrink-0"
+                          style={{ background: row.iconBg, color: row.iconColor }}
+                        >
+                          {row.badge}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* -------------------------------------------------------------- */}
+          {/* RIGHT CARD: เส้นทางวิ่ง (GPS Survey)                            */}
+          {/* -------------------------------------------------------------- */}
+          <div className="lg:col-span-6 bg-white rounded-[32px] border-[3px] border-[#2A1450] shadow-[0_20px_42px_-16px_rgba(42,20,80,0.32),0_7px_0_#2A1450] flex flex-col justify-between overflow-hidden relative">
+            {/* Top Colorful Accent Bar */}
+            <div className="h-2 w-full bg-gradient-to-r from-[#0284C7] via-[#16A34A] to-[#FFC928]" />
+
+            <div className="p-5 sm:p-7 flex-1 flex flex-col justify-between">
+              <div>
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b-2 border-dashed border-[#2A1450]/15">
+                  <div className="flex items-center gap-3.5">
+                    <span className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#0284C7] to-[#0369A1] text-white border-2 border-[#2A1450] shadow-[2px_3px_0_#2A1450] flex items-center justify-center shrink-0">
+                      <MapPin className="w-5 h-5" />
+                    </span>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-[#2A1450] leading-tight">
+                        เส้นทางวิ่ง (GPS Survey)
+                      </h3>
+                      <span className="block text-xs font-bold text-[#6B5A85] mt-0.5">
+                        เลียบชายหาดชะอำ – ค่ายนเรศวร (ปล่อยตัวยามเย็น 16.30 - 17.30 น.)
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={scrollToFullMap}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#F3ECFF] hover:bg-[#E6D6FC] text-[#4B1C8C] border-2 border-[#2A1450] shadow-[0_3px_0_#2A1450] px-4 py-2 text-xs font-extrabold transition-transform hover:scale-105 cursor-pointer"
+                  >
+                    <span>ดูเส้นทางเต็มจอ</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* 4 Route Selector Pills + Simulator CTA */}
+                <div className="flex flex-wrap items-center gap-2 my-4">
+                  {routePills.map((pill) => {
+                    const isSelected = selectedRoute === pill.id;
+                    return (
+                      <button
+                        key={pill.id}
+                        type="button"
+                        onClick={() => onSelectRoute && onSelectRoute(pill.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all cursor-pointer border-2 ${
+                          isSelected
+                            ? 'border-[#2A1450] shadow-[0_3px_0_#2A1450] -translate-y-0.5'
+                            : 'border-transparent hover:border-[#2A1450]/30'
+                        }`}
+                        style={{
+                          background: isSelected ? pill.activeBg : pill.idleBg,
+                          color: isSelected ? pill.activeText : pill.idleText,
+                        }}
+                      >
+                        {pill.label}
+                      </button>
+                    );
+                  })}
+
+                  {onOpenSimulation && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenSimulation(selectedRoute)}
+                      className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FFC928] hover:bg-[#F5B800] text-[#2A1450] text-xs font-extrabold border-2 border-[#2A1450] shadow-[0_3px_0_#2A1450] cursor-pointer transition-transform hover:scale-105"
+                    >
+                      <Play className="w-3 h-3 fill-current" />
+                      <span>จำลองการวิ่ง</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Active Route Mini Telemetry Strip */}
+                <div className="grid grid-cols-3 gap-2.5 mb-3.5 bg-[#FAF7FF] rounded-2xl p-2.5 border border-purple-100">
+                  <div className="bg-white rounded-xl px-3 py-1.5 border border-purple-100 flex items-center gap-2">
+                    <Flag className="w-4 h-4 text-[#7B3FC6] shrink-0" />
+                    <div>
+                      <div className="text-[10px] font-bold text-[#6B5A85]">ระยะทางจริง</div>
+                      <div className="text-xs sm:text-sm font-black text-[#2A1450] tabular-nums">
+                        {activeRouteData.distanceKm} กม.
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl px-3 py-1.5 border border-purple-100 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#EA580C] shrink-0" />
+                    <div>
+                      <div className="text-[10px] font-bold text-[#6B5A85]">เวลาปล่อยตัว</div>
+                      <div className="text-xs sm:text-sm font-black text-[#2A1450] tabular-nums">
+                        {activeRouteData.startTime}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl px-3 py-1.5 border border-purple-100 flex items-center gap-2">
+                    <Droplets className="w-4 h-4 text-[#0284C7] shrink-0" />
+                    <div>
+                      <div className="text-[10px] font-bold text-[#6B5A85]">จุดบริการน้ำ</div>
+                      <div className="text-xs sm:text-sm font-black text-[#2A1450] tabular-nums">
+                        {activeRouteData.waterStationCount} จุดตลอดสาย
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Embedded Map + Floating Legend Box on Right */}
+              <div className="relative rounded-2xl overflow-hidden border-[2.5px] border-[#2A1450] h-[380px] sm:h-[440px] w-full bg-[#E5F5FA] shadow-inner">
+                <div ref={mapContainerRef} className="w-full h-full z-10" />
+
+                {/* Floating Legend Overlay */}
+                <div className="absolute top-3 right-3 z-[400] bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border-2 border-[#2A1450]/20 space-y-2 pointer-events-none">
+                  {legendItems.map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-2 text-xs font-extrabold text-[#2A1450]"
+                    >
+                      <span
+                        className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] text-white shrink-0 shadow-xs"
+                        style={{ background: item.bg }}
+                      >
+                        {item.emoji}
+                      </span>
+                      <span className="whitespace-nowrap">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ============================================================ */}
-      {/* 3. CLEAN, PRINTER-FRIENDLY PDF PREVIEW & PRINT DIALOG */}
+      {/* PRINTER-FRIENDLY PDF SCHEDULE MODAL                          */}
       {/* ============================================================ */}
       {printModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm print:bg-white print:p-0">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-purple-100 overflow-hidden print:border-none print:shadow-none print:max-w-none print:w-full print:max-h-none print:rounded-none">
-            
-            {/* Modal Header (Hidden during actual paper print) */}
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border-2 border-[#2A1450] overflow-hidden print:border-none print:shadow-none print:max-w-none print:w-full print:max-h-none print:rounded-none">
             <div className="print-hide flex items-center justify-between p-4 sm:p-6 border-b border-gray-100 bg-[#FAF8FD]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#5B20A8] text-white flex items-center justify-center shadow-xs">
@@ -548,14 +629,15 @@ export const RouteAndScheduleSection: React.FC<RouteAndScheduleProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-[#1F1035]">
-                    พิมพ์กำหนดการแข่งขัน (Race Day Schedule)
+                    กำหนดการ (PDF)
                   </h3>
                   <p className="text-xs text-gray-500 font-medium">
-                    ฉบับย่อ สะดวกพกพา หรือบันทึกเป็นไฟล์ PDF (Save as PDF)
+                    CHANGSUEK RUN 2027 • 15 กุมภาพันธ์ 2570 ณ หาดชะอำ ค่ายนเรศวร
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setPrintModalOpen(false)}
                 className="w-9 h-9 rounded-full bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-colors cursor-pointer border border-gray-200"
               >
@@ -563,113 +645,42 @@ export const RouteAndScheduleSection: React.FC<RouteAndScheduleProps> = ({
               </button>
             </div>
 
-            {/* Printable Schedule Sheet Content (Clean, elegant, black/purple typography for PDF) */}
-            <div className="p-6 sm:p-8 overflow-y-auto flex-1 printable-schedule-sheet text-[#111827]">
-              {/* Document Header */}
-              <div className="border-b-2 border-[#5B20A8] pb-4 mb-6 flex items-start justify-between">
-                <div>
-                  <div className="text-[11px] font-black text-[#5B20A8] tracking-widest uppercase">
-                    CHANGSUEK RUN 2027 • OFFICIAL RACE SCHEDULE
+            <div className="p-6 sm:p-8 overflow-y-auto flex-1 printable-schedule-sheet text-[#111827] space-y-2.5">
+              {timelineRows.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-start gap-4 p-3.5 rounded-xl border border-purple-100 bg-[#FAF7FF]/50"
+                >
+                  <div className="w-32 font-mono font-black text-xs sm:text-sm text-[#5B20A8] shrink-0">
+                    {item.time}
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-[#1F1035] mt-1">
-                    กำหนดการแข่งขันงานช้างศึกรัน
-                  </h1>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1 font-medium">
-                    "เห็นช้างวิ่ง วิ่งตามช้าง" • ค่ายพระราม 6 ชายหาดชะอำ จ.เพชรบุรี
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="inline-block bg-[#FAF5FF] border border-[#5B20A8]/30 text-[#5B20A8] text-[11px] font-black px-3 py-1 rounded-md">
-                    15 กุมภาพันธ์ 2569
-                  </span>
-                </div>
-              </div>
-
-              {/* Quick Info Strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 mb-6 text-xs text-gray-700">
-                <div>
-                  <span className="text-gray-400 text-[10px] block uppercase font-bold">สถานที่ (Venue)</span>
-                  <span className="font-bold text-[#1F1035]">ค่ายพระราม 6 เพชรบุรี</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 text-[10px] block uppercase font-bold">จุดสตาร์ท (Start Line)</span>
-                  <span className="font-bold text-[#1F1035]">ลานกิจกรรมหน้าหาด</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 text-[10px] block uppercase font-bold">สิ่งสำคัญ (Check)</span>
-                  <span className="font-bold text-[#5B20A8]">นำ BIB และติดชิปวิ่ง</span>
-                </div>
-              </div>
-
-              {/* Clean Schedule Table / List */}
-              <div className="space-y-3">
-                {scheduleItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={`page-break-avoid flex items-start gap-4 p-3 rounded-xl border transition-colors ${
-                      item.highlight
-                        ? 'bg-amber-50/70 border-amber-300'
-                        : 'bg-white border-gray-100'
-                    }`}
-                  >
-                    {/* Time Column */}
-                    <div className="w-16 font-mono font-black text-sm text-[#5B20A8] shrink-0 pt-0.5">
-                      {item.time} น.
-                    </div>
-
-                    {/* Details Column */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-black text-[#1F1035]">
-                          {item.title}
-                        </span>
-                        {item.badge && (
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                            item.highlight
-                              ? 'bg-amber-400 text-[#1F1035]'
-                              : 'bg-purple-100 text-[#5B20A8]'
-                          }`}>
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-600 font-medium mt-0.5">
-                        {item.desc}
-                      </p>
-                    </div>
+                  <div>
+                    <div className="text-sm font-black text-[#1F1035]">{item.title}</div>
+                    {item.desc && (
+                      <div className="text-xs text-gray-600 font-medium mt-0.5">{item.desc}</div>
+                    )}
                   </div>
-                ))}
-              </div>
-
-              {/* Document Footer Notes */}
-              <div className="mt-8 pt-4 border-t border-dashed border-gray-300 text-[11px] text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <span>* กำหนดการอาจมีการปรับเปลี่ยนตามสภาพอากาศและการจราจรหน้างาน</span>
-                <span className="font-mono text-gray-400">changsuek-run.com/schedule</span>
-              </div>
+                </div>
+              ))}
             </div>
 
-            {/* Modal Bottom Action Bar (Hidden when printing paper/PDF) */}
-            <div className="print-hide p-4 sm:p-5 border-t border-gray-100 bg-[#FAF8FD] flex items-center justify-between gap-3">
-              <span className="text-xs text-gray-500 hidden sm:inline font-medium">
-                💡 ในหน้าต่างพิมพ์ ให้เลือกเครื่องพิมพ์เป็น <b>"บันทึกเป็น PDF" (Save as PDF)</b>
-              </span>
-              <div className="flex items-center gap-2 ml-auto">
-                <button
-                  onClick={() => setPrintModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-gray-300 text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-                >
-                  ปิด
-                </button>
-                <button
-                  onClick={handlePrintSchedule}
-                  className="print-keep inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5B20A8] hover:bg-[#471587] text-white text-xs sm:text-sm font-black shadow-md hover:shadow-lg transition-all cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>สั่งพิมพ์ / บันทึก PDF ตอนนี้</span>
-                </button>
-              </div>
+            <div className="print-hide p-4 sm:p-5 border-t border-gray-100 bg-[#FAF8FD] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setPrintModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-gray-300 text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                ปิดหน้าต่าง
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="print-keep inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5B20A8] hover:bg-[#471587] text-white text-xs sm:text-sm font-black shadow-md cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                <span>พิมพ์ / บันทึกเป็น PDF</span>
+              </button>
             </div>
-
           </div>
         </div>
       )}

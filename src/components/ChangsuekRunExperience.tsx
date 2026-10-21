@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Compass,
   UserPlus,
@@ -6,12 +6,12 @@ import {
   MapPin,
   Flame,
   Award,
-  ChevronRight,
+  ArrowRight,
   Sparkles,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { RouteId } from '../types';
-import { PawIcon, PawTrail } from './brand/DogDecor';
+import { PawIcon } from './brand/DogDecor';
 
 interface ChangsuekRunExperienceProps {
   onOpenRegister: (routeId?: RouteId) => void;
@@ -20,203 +20,260 @@ interface ChangsuekRunExperienceProps {
   onSelectRoute: (routeId: RouteId) => void;
 }
 
+interface CompactStep {
+  step: string;
+  tag: string;
+  headline: string;
+  summary: string;
+  badge: string;
+  icon: React.ComponentType<{ className?: string }>;
+  actionLabel: string;
+  onAction: () => void;
+  accent: string;
+  softBg: string;
+  cardGrad: string;
+}
+
 export const ChangsuekRunExperience: React.FC<ChangsuekRunExperienceProps> = ({
   onOpenRegister,
   onOpenRunnerCenter,
+  onOpenSimulation,
   onSelectRoute,
 }) => {
-  const steps = [
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+
+  const steps: CompactStep[] = [
     {
       step: '01',
-      title: 'DISCOVER',
-      headline: 'ค้นพบเส้นทางที่ใช่',
-      desc: 'ศึกษาเส้นทาง GPS 1K / 3K / 5K / 10K ชายหาดชะอำ ค่ายนเรศวร และโรงแรม Pet-Friendly 41 แห่ง',
+      tag: 'DISCOVER',
+      headline: 'เลือกระยะที่ใช่',
+      summary: 'เลือกวิ่ง 5K / 10K หรือวิ่งคู่กับน้องหมา 1K / 3K ริมหาดชะอำ',
+      badge: '4 ระยะแข่งขัน',
       icon: Compass,
-      badge: 'EXPLORE',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      actionText: 'ดูระยะวิ่ง',
+      actionLabel: 'เลือกบัตรวิ่ง',
       onAction: () => {
         const el = document.getElementById('distances');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       },
+      accent: '#15803D',
+      softBg: '#DCFCE7',
+      cardGrad: 'linear-gradient(160deg, #FFFFFF 0%, #ECFEF3 100%)',
     },
     {
       step: '02',
-      title: 'REGISTER',
-      headline: 'สมัคร & รับ BIB ทันที',
-      desc: 'ลงทะเบียนง่ายใน 1 นาที รับเบอร์ BIB ดิจิทัล บัตรประจำตัวนักวิ่ง และสิทธิ์พิเศษสำหรับเพื่อนสี่ขา',
+      tag: 'REGISTER',
+      headline: 'สมัคร & รับ BIB',
+      summary: 'ลงทะเบียนออนไลน์ใน 1 นาที รับป้าย Digital BIB ประจำตัวทันที',
+      badge: 'ออนไลน์ 1 นาที',
       icon: UserPlus,
-      badge: 'OFFICIAL',
-      color: 'bg-purple-50 text-[#5B20A8] border-purple-200',
-      actionText: 'สมัครรับ BIB',
+      actionLabel: 'สมัครรับ BIB',
       onAction: () => onOpenRegister(),
+      accent: '#6D28D9',
+      softBg: '#EDE9FE',
+      cardGrad: 'linear-gradient(160deg, #FFFFFF 0%, #F4EEFF 100%)',
     },
     {
       step: '03',
-      title: 'PREPARE',
-      headline: 'เตรียมความพร้อม',
-      desc: 'เช็กลิสต์ความพร้อมส่วนตัว พยากรณ์อากาศริมหาด จุดรับเสื้อวิ่ง และบริการตรวจสุขภาพน้องหมา',
+      tag: 'PREPARE',
+      headline: 'เตรียมตัวก่อนงาน',
+      summary: 'ตรวจเช็กลิสต์อุปกรณ์ สภาพอากาศ และกติกาพาน้องหมาร่วมวิ่ง',
+      badge: 'พร้อมครบ 100%',
       icon: CheckCircle2,
-      badge: 'CHECKLIST',
-      color: 'bg-sky-50 text-sky-700 border-sky-200',
-      actionText: 'เปิดศูนย์นักวิ่ง',
+      actionLabel: 'เปิดศูนย์นักวิ่ง',
       onAction: () => onOpenRunnerCenter(),
+      accent: '#0369A1',
+      softBg: '#E0F2FE',
+      cardGrad: 'linear-gradient(160deg, #FFFFFF 0%, #EDF8FF 100%)',
     },
     {
       step: '04',
-      title: 'COURSE PREVIEW',
-      headline: 'สำรวจจุดเลี้ยว & จุดบริการน้ำ',
-      desc: 'สำรวจพิกัดจุดเลี้ยว จุดบริการน้ำดื่ม และจุดปฐมพยาบาลริมหาดชะอำเพื่อวางแผนกลยุทธ์ Pace',
+      tag: 'PREVIEW',
+      headline: 'สำรวจจุดให้น้ำ',
+      summary: 'ดูพิกัดจุดกลับตัว จุดบริการน้ำดื่ม และเต็นท์พยาบาลบนแผนที่ GPS',
+      badge: 'พิกัด GPS จริง',
       icon: MapPin,
-      badge: 'ROUTE MAP',
-      color: 'bg-amber-50 text-amber-800 border-amber-300',
-      actionText: 'ดูแผนที่เส้นทาง',
+      actionLabel: 'จำลองเส้นทาง',
       onAction: () => {
-        onSelectRoute('3km');
-        const el = document.getElementById('routes');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        if (onOpenSimulation) {
+          onOpenSimulation('3km');
+        } else {
+          onSelectRoute('3km');
+          const el = document.getElementById('schedule-and-map');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
       },
+      accent: '#B45309',
+      softBg: '#FEF3C7',
+      cardGrad: 'linear-gradient(160deg, #FFFFFF 0%, #FFFBEB 100%)',
     },
     {
       step: '05',
-      title: 'RACE DAY',
-      headline: 'วันแข่งขันจริง 15 ก.พ. 2570',
-      desc: 'จุดปล่อยตัวหน้าหาด Sea Sand Sun สัมผัสพลังแห่งการวิ่งเคียงข้างช้างศึกและธรรมชาติ',
+      tag: 'RACE DAY',
+      headline: 'ออกสตาร์ทยามเช้า',
+      summary: 'วอร์มอัพพร้อมกันและปล่อยตัวแยกตาม Wave รับแสงแรกริมทะเล',
+      badge: 'ปล่อยตัว 06:00 น.',
       icon: Flame,
-      badge: 'FEBRUARY 2027',
-      color: 'bg-rose-50 text-rose-700 border-rose-200',
-      actionText: 'ดูกำหนดการ',
+      actionLabel: 'ดูกำหนดการ',
       onAction: () => {
-        const el = document.getElementById('schedule');
+        const el = document.getElementById('schedule-and-map');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       },
+      accent: '#C2410C',
+      softBg: '#FFEDD5',
+      cardGrad: 'linear-gradient(160deg, #FFFFFF 0%, #FFF4EB 100%)',
     },
     {
       step: '06',
-      title: 'FINISH & CELEBRATE',
-      headline: 'พิชิตเส้นชัย & รับเหรียญ',
-      desc: 'รับเหรียญรางวัล Finisher ช้างศึก บันทึกสถิติ และฉลองความสำเร็จร่วมกับครอบครัว',
+      tag: 'FINISH',
+      headline: 'รับเหรียญเส้นชัย',
+      summary: 'เข้าเส้นชัยรับเหรียญช้างศึก 3 มิติ พร้อมอาหารเช้าและเกียรติบัตร',
+      badge: 'Finisher Medal',
       icon: Award,
-      badge: 'FINISHER',
-      color: 'bg-purple-50 text-[#5B20A8] border-purple-200',
-      actionText: 'ดูเหรียญรางวัล',
+      actionLabel: 'ดูของที่ระลึก',
       onAction: () => {
         const el = document.getElementById('merch-showcase');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       },
+      accent: '#BE185D',
+      softBg: '#FCE7F3',
+      cardGrad: 'linear-gradient(160deg, #FFFFFF 0%, #FFF0F7 100%)',
     },
   ];
 
-  const tint = [
-    { bg: 'linear-gradient(160deg,#C9F3DD,#EBFAF2)', dot: '#2EAD62' },
-    { bg: 'linear-gradient(160deg,#E3D3FB,#F5EEFF)', dot: '#7B3FC6' },
-    { bg: 'linear-gradient(160deg,#BFE8FB,#E8F7FE)', dot: '#2B9FD6' },
-    { bg: 'linear-gradient(160deg,#FFE9A6,#FFF7D9)', dot: '#E5A800' },
-    { bg: 'linear-gradient(160deg,#FFC9B5,#FFEBE2)', dot: '#F2762A' },
-    { bg: 'linear-gradient(160deg,#FFC4DA,#FFE9F1)', dot: '#E0457F' },
-  ];
-
   return (
-    <section id="experience" className="py-16 sm:py-24 relative overflow-hidden">
-      <div className="absolute top-16 -left-16 w-72 h-72 bg-[#FFC928]/25 blob pointer-events-none animate-bobble" />
-      <div className="absolute bottom-10 -right-20 w-80 h-80 bg-[#C9A6F5]/30 blob pointer-events-none animate-bobble" style={{ animationDelay: '1.2s' }} />
+    <section
+      id="experience"
+      className="py-12 sm:py-16 relative overflow-hidden scroll-mt-20"
+      style={{
+        background:
+          'linear-gradient(135deg, #240B44 0%, #3E1672 52%, #200A3C 100%)',
+      }}
+    >
+      {/* Ambient Golden & Lavender Glows */}
+      <div className="absolute -top-24 left-1/4 w-96 h-96 bg-[#FFC928]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 right-1/4 w-96 h-96 bg-[#9B59FF]/25 rounded-full blur-3xl pointer-events-none" />
+      <PawIcon
+        size={140}
+        color="#FFFFFF"
+        className="absolute top-6 right-10 opacity-5 rotate-12 pointer-events-none"
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          className="text-center max-w-3xl mx-auto mb-12 space-y-3"
-        >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border-2 border-[#2A1450] text-[#5B20A8] text-xs font-bold uppercase tracking-widest shadow-[0_3px_0_#2A1450]">
-            <Sparkles className="w-3.5 h-3.5 text-[#FFC928]" />
-            CHANGSUEK RUN EXPERIENCE
-          </span>
-          <h2 className="text-4xl sm:text-6xl font-bold text-[#2A1450] leading-tight">การเดินทางของนักวิ่งช้างศึก</h2>
-          <p className="text-sm sm:text-lg text-[#4B2D78] font-medium">
-            ตั้งแต่ค้นหาเส้นทาง สมัครรับ BIB เตรียมตัว ไปจนถึงวินาทีข้ามเส้นชัยพร้อมเพื่อนสี่ขา
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Vibrant Header on Deep Purple Backdrop */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FFC928] text-[#2A1450] border-2 border-white/40 text-[11px] font-extrabold uppercase tracking-wider mb-2.5 shadow-md">
+              <Sparkles className="w-3.5 h-3.5 text-[#2A1450]" />
+              <span>CHANGSUEK RUN ROADMAP · 6 STEPS TO FINISH</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+              การเดินทางของนักวิ่งช้างศึก
+            </h2>
+          </div>
+          <p className="text-xs sm:text-sm text-white/80 font-medium max-w-md">
+            6 ขั้นตอนกระชับเข้าใจง่าย ตั้งแต่เลือกระยะวิ่ง รับป้าย Digital BIB ไปจนถึงการพิชิตเหรียญรางวัลริมหาดชะอำ
           </p>
-        </motion.div>
-
-        {/* 6 steps */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {steps.map((st, i) => {
-            const Icon = st.icon;
-            const t = tint[i];
-            return (
-              <motion.div
-                key={st.step}
-                initial={{ opacity: 0, y: 50, rotate: i % 2 ? 2 : -2 }}
-                whileInView={{ opacity: 1, y: 0, rotate: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ type: 'spring', stiffness: 160, damping: 16, delay: (i % 3) * 0.08 }}
-                whileHover={{ y: -8, rotate: i % 2 ? 1.2 : -1.2 }}
-                className={`relative rounded-[28px] p-6 border-[3px] border-white shadow-[0_16px_34px_-16px_rgba(75,45,120,.5)] flex flex-col ${
-                  i % 3 === 1 ? 'lg:mt-8' : ''
-                }`}
-                style={{ background: t.bg }}
-              >
-                <span
-                  className="absolute -top-4 -left-3 w-12 h-12 rounded-full text-white font-display font-bold text-lg flex items-center justify-center border-[3px] border-white shadow-md animate-boing"
-                  style={{ background: t.dot, animationDelay: `${i * 0.25}s` }}
-                >
-                  {st.step}
-                </span>
-                <PawIcon size={80} color="#fff" className="absolute -right-3 -bottom-3 opacity-50 rotate-12 pointer-events-none" />
-
-                <div className="flex items-center justify-between mb-4 pl-8">
-                  <span className="text-[11px] font-bold tracking-widest" style={{ color: t.dot }}>
-                    {st.badge}
-                  </span>
-                  <span className="w-12 h-12 rounded-2xl bg-white shadow flex items-center justify-center" style={{ color: t.dot }}>
-                    <Icon className="w-6 h-6" />
-                  </span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-[#2A1450] leading-snug">{st.headline}</h3>
-                <p className="mt-2 text-sm text-[#4B2D78] font-medium leading-relaxed flex-1">{st.desc}</p>
-                <button
-                  onClick={st.onAction}
-                  className="group/btn mt-5 self-start inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-sm font-bold text-[#2A1450] shadow-sm hover:shadow-md transition-all cursor-pointer"
-                >
-                  <span>{st.actionText}</span>
-                  <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </button>
-              </motion.div>
-            );
-          })}
         </div>
 
-        {/* CTA banner */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.94 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.3 }}
-          className="relative mt-14 sm:mt-20 rounded-[32px] overflow-hidden p-7 sm:p-10 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-6"
-          style={{ background: 'linear-gradient(120deg,#5A25A8,#7B3FC6 55%,#4B1C8C)', boxShadow: '0 22px 40px -18px rgba(75,28,140,.7)' }}
-        >
-          <PawTrail className="absolute right-6 top-4 opacity-70" count={6} color="#FFC928" />
-          <div className="relative space-y-2 max-w-xl">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#FFC928]">READY TO JOIN US?</span>
-            <h3 className="text-2xl sm:text-4xl font-bold leading-tight">พร้อมแล้วใช่ไหมที่จะก้าวไปด้วยกัน?</h3>
-            <p className="text-sm sm:text-base text-white/85 leading-relaxed">
-              ร่วมเป็นหนึ่งในประวัติศาสตร์งานวิ่งช้างศึกรัน 2027 ท่ามกลางหาดทราย ป่าสน และกลิ่นอายค่ายนเรศวร
-            </p>
+        {/* Connected 6-Step Horizontal Roadmap */}
+        <div className="relative">
+          {/* Glowing Golden Track Line behind step cards on Desktop */}
+          <div
+            aria-hidden="true"
+            className="hidden lg:block absolute top-1/2 -translate-y-1/2 left-8 right-8 h-1.5 bg-gradient-to-r from-[#22C55E] via-[#FFC928] to-[#EC4899] rounded-full opacity-50 pointer-events-none"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 sm:gap-4 relative z-10">
+            {steps.map((st, idx) => {
+              const Icon = st.icon;
+              const isActive = activeIndex === idx;
+
+              return (
+                <motion.div
+                  key={st.step}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.35, delay: idx * 0.05 }}
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  onMouseEnter={() => setActiveIndex(idx)}
+                  onClick={() => {
+                    setActiveIndex(idx);
+                    st.onAction();
+                  }}
+                  style={{ background: st.cardGrad }}
+                  className={`group relative rounded-[24px] p-4 sm:p-4.5 flex flex-col justify-between transition-all duration-200 cursor-pointer border-2 overflow-hidden ${
+                    isActive
+                      ? 'border-[#FFC928] shadow-[0_18px_36px_-10px_rgba(0,0,0,0.45),0_5px_0_#FFC928]'
+                      : 'border-white/90 hover:border-[#FFC928] shadow-[0_12px_24px_-10px_rgba(0,0,0,0.35),0_4px_0_rgba(255,255,255,0.25)]'
+                  }`}
+                >
+                  {/* Top Color Bar */}
+                  <div
+                    className="absolute top-0 inset-x-0 h-1.5"
+                    style={{ background: st.accent }}
+                  />
+
+                  <div>
+                    {/* Top Row: Step Number Badge + Icon */}
+                    <div className="flex items-center justify-between gap-2 mb-3 pt-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-8 h-8 rounded-xl font-display font-black text-xs text-white flex items-center justify-center border-2 border-[#2A1450] shadow-[2px_2px_0_#2A1450] transition-transform group-hover:scale-105"
+                          style={{ background: st.accent }}
+                        >
+                          {st.step}
+                        </span>
+                        <span
+                          className="text-[10px] font-mono font-extrabold uppercase tracking-wider"
+                          style={{ color: st.accent }}
+                        >
+                          {st.tag}
+                        </span>
+                      </div>
+
+                      <span
+                        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-black/10 transition-transform group-hover:rotate-6"
+                        style={{ background: st.softBg, color: st.accent }}
+                      >
+                        <Icon className="w-4 h-4 stroke-[2.4]" />
+                      </span>
+                    </div>
+
+                    {/* Badge Pill */}
+                    <span
+                      className="inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full mb-2 border border-black/5"
+                      style={{ background: st.softBg, color: st.accent }}
+                    >
+                      {st.badge}
+                    </span>
+
+                    {/* Step Title */}
+                    <h3 className="text-base font-extrabold text-[#2A1450] leading-snug group-hover:text-[#5B20A8] transition-colors">
+                      {st.headline}
+                    </h3>
+
+                    {/* Concise 2-Line Description */}
+                    <p className="mt-1 text-xs text-[#4B2D78] font-semibold leading-relaxed line-clamp-2">
+                      {st.summary}
+                    </p>
+                  </div>
+
+                  {/* Compact Tactile Action Pill */}
+                  <div className="mt-4 pt-2.5 border-t border-[#2A1450]/10 flex items-center justify-between text-xs font-extrabold text-[#2A1450] group-hover:text-[#5B20A8]">
+                    <span>{st.actionLabel}</span>
+                    <span
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white transition-transform group-hover:translate-x-1 shadow-xs"
+                      style={{ background: st.accent }}
+                    >
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-          <div className="relative flex flex-wrap items-center gap-3">
-            <button onClick={() => onOpenRegister()} className="btn-paw bg-[#FFC928] px-8 py-3.5 text-base">
-              <PawIcon size={20} color="#2A1450" />
-              สมัครวิ่งทันที
-            </button>
-            <button
-              onClick={onOpenRunnerCenter}
-              className="px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 text-white font-bold text-sm border-2 border-white/40 backdrop-blur-sm transition-all cursor-pointer inline-flex items-center gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              เปิดศูนย์นักวิ่ง (Runner Center)
-            </button>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

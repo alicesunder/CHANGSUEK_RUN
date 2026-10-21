@@ -57,10 +57,8 @@ export const RunnerCenter: React.FC<RunnerCenterProps> = ({
   };
 
   const handleClearDemoProfile = () => {
-    if (confirm('คุณต้องการรีเซ็ตข้อมูลโปรไฟล์จำลองนี้หรือไม่?')) {
-      clearStoredRunnerProfile();
-      setProfile(null);
-    }
+    clearStoredRunnerProfile();
+    setProfile(null);
   };
 
   return (
@@ -184,16 +182,16 @@ export const RunnerCenter: React.FC<RunnerCenterProps> = ({
 
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="p-2.5 rounded-2xl bg-purple-50 border border-purple-100">
-                        <div className="text-[10px] text-gray-500 font-bold uppercase">รับอุปกรณ์</div>
-                        <div className="text-sm font-black text-[#5B20A8] mt-0.5">05:00 น.</div>
+                        <div className="text-[10px] text-gray-500 font-bold uppercase">ประกวด & กิจกรรม</div>
+                        <div className="text-sm font-black text-[#5B20A8] mt-0.5">09.00 - 15.00 น.</div>
                       </div>
                       <div className="p-2.5 rounded-2xl bg-amber-50 border border-amber-200">
-                        <div className="text-[10px] text-gray-500 font-bold uppercase">ปล่อยตัว</div>
-                        <div className="text-sm font-black text-[#B26A00] mt-0.5">06:00 - 06:40 น.</div>
+                        <div className="text-[10px] text-gray-500 font-bold uppercase">ปล่อยตัววิ่ง 4 ระยะ</div>
+                        <div className="text-sm font-black text-[#B26A00] mt-0.5">16.30 - 17.30 น.</div>
                       </div>
                       <div className="p-2.5 rounded-2xl bg-emerald-50 border border-emerald-100">
-                        <div className="text-[10px] text-gray-500 font-bold uppercase">ปิดเส้นทาง</div>
-                        <div className="text-sm font-black text-emerald-700 mt-0.5">11:00 น.</div>
+                        <div className="text-[10px] text-gray-500 font-bold uppercase">ดนตรี & คอนเสิร์ต</div>
+                        <div className="text-sm font-black text-emerald-700 mt-0.5">17.30 น. เป็นต้นไป</div>
                       </div>
                     </div>
                   </div>

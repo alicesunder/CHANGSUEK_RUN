@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, ArrowUp, Send, Check } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowUp, Send, Check, ShieldCheck } from 'lucide-react';
 
 interface FooterProps {
   onOpenArtworkModal: () => void;
   onOpenRegisterModal: () => void;
+  onOpenAdminModal?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenArtworkModal, onOpenRegisterModal }) => {
+export const Footer: React.FC<FooterProps> = ({
+  onOpenArtworkModal,
+  onOpenRegisterModal,
+  onOpenAdminModal,
+}) => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -40,7 +45,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenArtworkModal, onOpenRegist
             />
             
             <p className="text-xs text-purple-200/80 leading-relaxed mb-4 max-w-sm">
-              งานวิ่งประวัติศาสตร์ ณ ค่ายพระราม 6 ชายหาดชะอำ-เพชรบุรี ก้าวไปด้วยกันเพื่อสุขภาพ รอยยิ้ม และการอนุรักษ์ธรรมชาติ
+              งานวิ่งริมทะเลชะอำ-หัวหิน ณ หาดชะอำ (ค่ายนเรศวร - ค่ายพระราม 6) จ.เพชรบุรี วันที่ 15 กุมภาพันธ์ 2570 ก้าวไปด้วยกันเพื่อสุขภาพ รอยยิ้ม และเพื่อนสี่ขา
             </p>
 
             {/* Handwritten cursive script matching mockup */}
@@ -65,10 +70,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenArtworkModal, onOpenRegist
                 <a href="#distances" className="hover:text-[#FFCC00] transition-colors">ระยะวิ่ง (10K / 5K / Dog 3K / Dog 1K)</a>
               </li>
               <li>
-                <a href="#routes" className="hover:text-[#FFCC00] transition-colors">เส้นทางวิ่ง & จุดบริการ</a>
-              </li>
-              <li>
-                <a href="#schedule" className="hover:text-[#FFCC00] transition-colors">กำหนดการวันแข่งขัน</a>
+                <a href="#schedule-and-map" className="hover:text-[#FFCC00] transition-colors">เส้นทางวิ่ง & กำหนดการแข่งขัน</a>
               </li>
               <li>
                 <a href="#hotels" className="hover:text-[#FFCC00] transition-colors">ที่พักใกล้สถานที่จัดงาน</a>
@@ -87,7 +89,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenArtworkModal, onOpenRegist
             <div className="space-y-3 text-xs text-white/70">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-[#FFCC00] flex-shrink-0 mt-0.5" />
-                <span>ค่ายพระราม 6 อ.ชะอำ จ.เพชรบุรี</span>
+                <span>หาดชะอำ (ค่ายนเรศวร - ค่ายพระราม 6) อ.ชะอำ จ.เพชรบุรี</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-[#FFCC00] flex-shrink-0" />
@@ -158,8 +160,21 @@ export const Footer: React.FC<FooterProps> = ({ onOpenArtworkModal, onOpenRegist
 
         {/* Bottom copyright row matching mockup */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-4">
-          <div>
-            © 2026 CHANGSUEK RUN. All rights reserved. | <span className="text-white/70">เห็นช้างวิ่ง วิ่งตามช้าง</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span>
+              © 2026 CHANGSUEK RUN. All rights reserved. |{' '}
+              <span className="text-white/70">เห็นช้างวิ่ง วิ่งตามช้าง</span>
+            </span>
+            {onOpenAdminModal && (
+              <button
+                type="button"
+                onClick={onOpenAdminModal}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-[#FFC928] text-[#FFC928] hover:text-[#17092B] font-extrabold text-[11px] border border-[#FFC928]/40 transition-colors cursor-pointer"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>ระบบจัดการตั๋ว & เลข BIB (สำหรับแอดมิน)</span>
+              </button>
+            )}
           </div>
 
           <button

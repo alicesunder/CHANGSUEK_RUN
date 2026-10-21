@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { Sparkles, X } from 'lucide-react';
 import { RouteId } from './types';
 import { ScrollFX } from './components/ScrollFX';
 import { CustomCursor } from './components/CustomCursor';
@@ -14,11 +15,13 @@ import { DistanceComparisonModal } from './components/DistanceComparisonModal';
 import { VideoTeaserModal } from './components/VideoTeaserModal';
 import { PaceCalculatorModal } from './components/PaceCalculatorModal';
 import { RunnerCenter } from './components/RunnerCenter';
+import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { InteractiveRouteMap } from './components/InteractiveRouteMap';
 import { ChangsuekRunExperience } from './components/ChangsuekRunExperience';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { EventObjectiveSection } from './components/EventObjectiveSection';
 import { RaceDistances } from './components/RaceDistances';
 import { EventHighlights } from './components/EventHighlights';
 import { RouteAndScheduleSection } from './components/RouteAndScheduleSection';
@@ -40,22 +43,27 @@ export default function App() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [paceModalOpen, setPaceModalOpen] = useState(false);
   const [runnerCenterOpen, setRunnerCenterOpen] = useState(false);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [easterEggActive, setEasterEggActive] = useState(false);
   const [simulationTriggerRoute, setSimulationTriggerRoute] = useState<RouteId | null>(null);
+  const [fullMapExpanded, setFullMapExpanded] = useState(false);
 
   const handleSelectDistance = (distance: RouteId) => {
     setSelectedRoute(distance);
-    const elem = document.getElementById('interactive-map');
+    const elem = document.getElementById('distances');
     if (elem) {
       elem.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   const handleScrollToMap = () => {
-    const elem = document.getElementById('interactive-map');
-    if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth' });
-    }
+    setFullMapExpanded(true);
+    setTimeout(() => {
+      const elem = document.getElementById('interactive-map');
+      if (elem) {
+        elem.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const handleOpenRegister = (distance?: RouteId, extras?: { people: number; dogs: number }) => {
@@ -72,6 +80,7 @@ export default function App() {
     const targetRoute = routeId || selectedRoute || '3km';
     setSelectedRoute(targetRoute);
     setSimulationTriggerRoute(targetRoute);
+    setFullMapExpanded(true);
     setTimeout(() => {
       const elem = document.getElementById('interactive-map');
       if (elem) {
@@ -81,8 +90,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF] text-[#17151C] font-sans antialiased selection:bg-[#FFCC00] selection:text-[#17151C] relative overflow-x-hidden pb-16 lg:pb-0">
-      {/* 1. Desktop Custom Cursor */}
+    <div className="min-h-screen bg-[#FAF7FF] text-[#17151C] font-sans antialiased selection:bg-[#FFCC00] selection:text-[#17151C] relative overflow-x-hidden pb-16 lg:pb-0">
+      {/* 1. Desktop Custom Cursor & Scroll Progress */}
       <CustomCursor />
       <ScrollFX />
 
@@ -92,34 +101,28 @@ export default function App() {
         onClose={() => setEasterEggActive(false)}
       />
 
-      {/* 3. Navbar matching mockup (with Runner Center entry) */}
+      {/* 3. Top Dark-Purple Navbar matching mockup */}
       <Navbar
         onOpenArtworkModal={() => setArtworkModalOpen(true)}
         onOpenRegisterModal={() => handleOpenRegister()}
         onOpenRunnerCenter={() => setRunnerCenterOpen(true)}
+        onOpenAdminModal={() => setAdminModalOpen(true)}
         onEasterEggTrigger={() => setEasterEggActive(true)}
       />
 
-      {/* Main Content Experience strictly matching user reference layout */}
+      {/* Main Content Flow */}
       <main>
-        {/* 4. Hero Section */}
+        {/* 4. Hero + Curved Countdown & Quote Banner + 9 Quick-Navigation Icon Cards */}
         <Hero
           onOpenArtworkModal={() => setArtworkModalOpen(true)}
           onOpenRegisterModal={() => handleOpenRegister()}
           onSelectDistance={handleSelectDistance}
         />
 
-        {/* 5. CHANGSUEK RUN EXPERIENCE (Flagship 6-step Journey Section) */}
-        <ChangsuekRunExperience
-          onOpenRegister={handleOpenRegister}
-          onOpenRunnerCenter={() => setRunnerCenterOpen(true)}
-          onOpenSimulation={handleOpenSimulation}
-          onSelectRoute={setSelectedRoute}
-        />
+        {/* 4.5 วัตถุประสงค์ของการจัดงาน (Official Event Objective & Mission) */}
+        <EventObjectiveSection />
 
-        {/* 6. แรงบันดาลใจจากช้าง สู่เส้นทางที่ยิ่งใหญ่กว่า (Inspiration Section) */}
-
-        {/* 7. ระยะวิ่ง (4 distance cards + เสื้อวิ่ง & เหรียญรางวัล) */}
+        {/* 5. เลือกบัตรวิ่งของคุณ (Preserved 3D Collectible Tickets + Price Calculator + Unified Race Pack & Merch) */}
         <RaceDistances
           selectedRoute={selectedRoute}
           onSelectRoute={setSelectedRoute}
@@ -129,10 +132,7 @@ export default function App() {
           onOpenPaceModal={() => setPaceModalOpen(true)}
         />
 
-        {/* 8. ไฮไลท์งาน (9 white cards with purple line icons) */}
-        <EventHighlights />
-
-        {/* 9. กำหนดการวันแข่งขัน (Race Day Schedule) */}
+        {/* 6. 2-Column Side-by-Side: กำหนดการวันแข่งขัน (Left) & เส้นทางวิ่ง GPS Survey (Right) */}
         <RouteAndScheduleSection
           selectedRoute={selectedRoute}
           onSelectRoute={setSelectedRoute}
@@ -140,41 +140,93 @@ export default function App() {
           onOpenSimulation={handleOpenSimulation}
         />
 
-        {/* 10. แผนที่เส้นทางหลักหนึ่งเดียว: เส้นทางวิ่งสำรวจ (GPS Survey) — CHANGSUEK RUN ROUTE MAP */}
-        <InteractiveRouteMap
-          selectedRoute={selectedRoute}
-          onSelectRoute={setSelectedRoute}
-          onOpenArtworkModal={() => setArtworkModalOpen(true)}
-          onOpenRunnerCenter={() => setRunnerCenterOpen(true)}
-          initialSimulationActive={simulationTriggerRoute !== null}
-        />
+        {/* On-Demand Expandable Full-Screen Interactive Route Map & Route Simulator */}
+        {fullMapExpanded && (
+          <div className="relative bg-[#FAF7FF] border-t-2 border-b-2 border-[#2A1450]/15">
+            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setFullMapExpanded(false)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#2A1450] text-[#FFC928] px-4 py-2 text-xs font-extrabold shadow-md hover:bg-[#3E1C72] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                <span>ย่อแผนที่จำลองการวิ่งเต็มจอ</span>
+              </button>
+            </div>
+            <InteractiveRouteMap
+              selectedRoute={selectedRoute}
+              onSelectRoute={setSelectedRoute}
+              onOpenArtworkModal={() => setArtworkModalOpen(true)}
+              onOpenRunnerCenter={() => setRunnerCenterOpen(true)}
+              initialSimulationActive={simulationTriggerRoute !== null}
+            />
+          </div>
+        )}
 
-        {/* 11. ที่พักใกล้สถานที่จัดงาน (2 featured hotel cards + expandable directory) */}
+        {/* 7. Dark Purple Featured Hotels Strip: ที่พักใกล้สนาม วิ่งสบาย พักสบาย */}
         <HotelExplorer />
 
-        {/* 12. ตารางเกียรติยศ & ชุมชนนักวิ่งช้างศึก (Leaderboard & Community) */}
+        {/* 8. Compact 6-Step Runner Roadmap: CHANGSUEK RUN ROADMAP */}
+        <ChangsuekRunExperience
+          onOpenRegister={handleOpenRegister}
+          onOpenRunnerCenter={() => setRunnerCenterOpen(true)}
+          onOpenSimulation={handleOpenSimulation}
+          onSelectRoute={setSelectedRoute}
+        />
+
+        {/* 9. ไฮไลท์งาน (9 Event Highlight Cards) */}
+        <EventHighlights />
+
+        {/* 10. 2-Column Side-by-Side: พยากรณ์อากาศวันแข่ง & เช็กลิสต์เตรียมตัวนักวิ่ง */}
+        <section
+          id="runner-prep"
+          className="py-12 sm:py-16 bg-gradient-to-b from-[#EFE6FC] via-[#FAF7FF] to-[#E0F2FE]/60 relative overflow-hidden"
+        >
+          <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
+              <div>
+                <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white border-2 border-[#2A1450] text-[#5B20A8] text-xs font-extrabold uppercase tracking-wider shadow-[0_3px_0_#2A1450] mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+                  <span>WEATHER & RUNNER READINESS</span>
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-[#2A1450] tracking-tight">
+                  สภาพอากาศชายหาด & เช็กลิสต์เตรียมความพร้อม
+                </h2>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-[#4B2D78]">
+                ตรวจเช็กอุณหภูมิริมหาดชะอำและอุปกรณ์สำคัญก่อนออกสตาร์ท
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 items-stretch">
+              <div className="lg:col-span-6">
+                <EventWeatherForecast />
+              </div>
+              <div className="lg:col-span-6">
+                <EssentialRunnerChecklist />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 11. ตารางเกียรติยศ & ชุมชนนักวิ่งช้างศึก (Leaderboard & Community) */}
         <LeaderboardSection />
 
-        {/* 13. พยากรณ์อากาศวันแข่ง & เตรียมความพร้อมอุปกรณ์ (Real-Time Weather Forecast) */}
-        <EventWeatherForecast />
-
-        {/* 14. เช็กลิสต์อุปกรณ์จำเป็นสำหรับนักวิ่ง (Essential Runner Checklist) */}
-        <EssentialRunnerChecklist />
-
-        {/* 15. คำถามที่พบบ่อย (FAQ) */}
+        {/* 12. คำถามที่พบบ่อย (FAQ) */}
         <FAQSection />
 
-        {/* 16. CTA Banner: พร้อมแล้วใช่ไหม? มาร่วมเป็นส่วนหนึ่งของ CHANGSUEK RUN */}
+        {/* 13. CTA Banner */}
         <EventCtaBanner onOpenRegisterModal={() => handleOpenRegister()} />
       </main>
 
-      {/* 17. Footer matching mockup */}
+      {/* Footer */}
       <Footer
         onOpenArtworkModal={() => setArtworkModalOpen(true)}
         onOpenRegisterModal={() => handleOpenRegister()}
+        onOpenAdminModal={() => setAdminModalOpen(true)}
       />
 
-      {/* 18. Mobile Bottom Navigation with Runner Center & Quick Actions */}
+      {/* Mobile Bottom Navigation */}
       <MobileBottomNav
         onOpenRegisterModal={() => handleOpenRegister()}
         onOpenRunnerCenter={() => setRunnerCenterOpen(true)}
@@ -182,6 +234,15 @@ export default function App() {
       />
 
       {/* Modals & Dialogs */}
+      <AdminDashboardModal
+        isOpen={adminModalOpen}
+        onClose={() => setAdminModalOpen(false)}
+        onOpenRegisterModal={(routeId) => {
+          setAdminModalOpen(false);
+          handleOpenRegister(routeId);
+        }}
+      />
+
       <RunnerCenter
         isOpen={runnerCenterOpen}
         onClose={() => setRunnerCenterOpen(false)}
@@ -205,6 +266,10 @@ export default function App() {
         onRegistrationSuccess={() => {
           setRegisterModalOpen(false);
           setRunnerCenterOpen(true);
+        }}
+        onOpenAdminModal={() => {
+          setRegisterModalOpen(false);
+          setAdminModalOpen(true);
         }}
       />
 

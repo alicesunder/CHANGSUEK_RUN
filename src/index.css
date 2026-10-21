@@ -521,3 +521,60 @@ html.dark .leaflet-tile-pane {
 .scroll-dog { position: fixed; top: 0; left: 0; height: 5px; z-index: 70; pointer-events: none;
   background: linear-gradient(90deg,#FFC928,#FF8A3D,#7B3FC6); border-radius: 0 6px 6px 0; }
 .scroll-dog span { position: absolute; right: -14px; top: 4px; font-size: 22px; line-height: 1; animation: boing .5s ease-in-out infinite; }
+
+/* ================= Collectible Running Ticket & BIB Pass Animations ================= */
+@keyframes ticketShimmer {
+  0% {
+    transform: translateX(-140%) skewX(-22deg);
+  }
+  45%, 100% {
+    transform: translateX(220%) skewX(-22deg);
+  }
+}
+
+@keyframes holoGradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes scanLaser {
+  0%, 100% {
+    transform: translateY(0%);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(280%);
+    opacity: 0.9;
+  }
+}
+
+.animate-ticket-shimmer {
+  animation: ticketShimmer 4.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-holo {
+  background-size: 200% 200%;
+  animation: holoGradient 5s ease infinite;
+}
+
+.animate-scan-laser {
+  animation: scanLaser 2.8s ease-in-out infinite;
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+

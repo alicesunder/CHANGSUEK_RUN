@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, Check, Award, Clock, MapPin, Droplets, Mountain, Heart, Shield, Sparkles, UserPlus } from 'lucide-react';
+import React from 'react';
+import { X, Award, Clock, MapPin, Heart, Shield, Sparkles, UserPlus } from 'lucide-react';
 import { RouteId } from '../types';
+import { TICKET_CARD_IMAGES } from './brand/TicketCardArtwork';
 
 interface DistanceComparisonModalProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ export const DistanceComparisonModal: React.FC<DistanceComparisonModalProps> = (
               <Sparkles className="w-3.5 h-3.5" />
               <span>DISTANCE COMPARISON</span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black">เปรียบเทียบระยะวิ่งทั้ง 3 ระยะ</h3>
+            <h3 className="text-xl sm:text-2xl font-black">เปรียบเทียบระยะวิ่งทั้ง 4 ประเภทบัตร</h3>
             <p className="text-xs sm:text-sm text-white/80">
               เลือกสนามที่ตอบโจทย์ไลฟ์สไตล์และความสนุกของคุณมากที่สุด
             </p>
@@ -112,38 +113,51 @@ export const DistanceComparisonModal: React.FC<DistanceComparisonModalProps> = (
           </button>
         </div>
 
-        {/* 4 ticket summary cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 p-4 sm:p-6 bg-[#FAF9FC] border-b border-gray-100">
-          {columns.map((c) => (
-            <div
-              key={c.id}
-              className="p-3 sm:p-4 rounded-2xl bg-white border-2 shadow-xs flex flex-col justify-between text-center"
-              style={{ borderColor: c.color + '66' }}
-            >
-              <div>
-                <span
-                  className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full"
-                  style={{ background: c.soft, color: c.color }}
-                >
-                  {c.chip}
-                </span>
-                <div className="text-xl sm:text-3xl font-black mt-1" style={{ color: c.color }}>
-                  {c.short}
-                </div>
-                <div className="text-[11px] sm:text-xs font-bold text-gray-600">{c.sub}</div>
-              </div>
-              <button
-                onClick={() => {
-                  onClose();
-                  onSelectRouteToRegister(c.id);
-                }}
-                className="mt-3 text-white text-xs font-black py-2 px-2 rounded-xl transition-all shadow cursor-pointer hover:brightness-95"
-                style={{ background: c.color }}
+        {/* 4 ticket summary cards with dedicated artwork */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 p-4 sm:p-6 bg-[#FAF9FC] border-b border-gray-100">
+          {columns.map((c) => {
+            const imgMeta = TICKET_CARD_IMAGES[c.id];
+            return (
+              <div
+                key={c.id}
+                className="group rounded-2xl bg-white border-2 shadow-xs overflow-hidden flex flex-col justify-between text-center"
+                style={{ borderColor: c.color + '66' }}
               >
-                เลือกสมัคร {c.short}
-              </button>
-            </div>
-          ))}
+                <div className="relative h-24 w-full overflow-hidden">
+                  <img
+                    src={imgMeta.src}
+                    alt={imgMeta.alt}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    style={{ objectPosition: imgMeta.objectPosition }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  <span
+                    className="absolute top-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs"
+                    style={{ background: c.soft, color: c.color }}
+                  >
+                    {c.chip}
+                  </span>
+                  <div className="absolute bottom-1.5 right-2.5 text-xl sm:text-2xl font-black text-white drop-shadow">
+                    {c.short}
+                  </div>
+                </div>
+                <div className="p-3 flex flex-col flex-1 justify-between">
+                  <div className="text-[11px] sm:text-xs font-bold text-gray-700">{c.sub}</div>
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onSelectRouteToRegister(c.id);
+                    }}
+                    className="mt-2.5 text-white text-xs font-black py-2 px-2 rounded-xl transition-all shadow cursor-pointer hover:brightness-95"
+                    style={{ background: c.color }}
+                  >
+                    เลือกสมัคร {c.short}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Comparison Table */}

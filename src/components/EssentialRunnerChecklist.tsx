@@ -1,28 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle2, 
-  Circle, 
-  Footprints, 
-  Tag, 
-  Droplets, 
-  Sun, 
-  Sparkles, 
-  RefreshCw, 
-  HelpCircle,
+import {
+  CheckCircle2,
+  Circle,
+  Footprints,
+  Tag,
+  Droplets,
+  Sun,
+  RefreshCw,
   Shirt,
   Smartphone,
   Watch,
-  HeartPulse
+  HeartPulse,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 
 interface ChecklistItem {
   id: string;
   name: string;
-  nameEn: string;
-  category: 'must-have' | 'gear' | 'hydration' | 'health';
   description: string;
-  tip?: string;
   icon: React.ComponentType<{ className?: string }>;
   defaultChecked?: boolean;
 }
@@ -32,73 +26,41 @@ const CHECKLIST_STORAGE_KEY = 'changsuek_runner_checklist_v1';
 const DEFAULT_CHECKLIST: ChecklistItem[] = [
   {
     id: 'running-shoes',
-    name: 'รองเท้าวิ่ง (Running Shoes)',
-    nameEn: 'Running Shoes',
-    category: 'must-have',
-    description: 'คู่ที่ซ้อมจนชินเท้า ไม่แนะนำให้ใส่รองเท้าคู่ใหม่แกะกล่องวันแข่ง',
-    tip: 'ตรวจสอบความกระชับและผูกเชือก 2 ทบป้องกันเชือกหลุดระหว่างวิ่ง',
+    name: 'รองเท้าวิ่งคู่ใจที่ซ้อมจนชินเท้า',
+    description: 'ผูกเชือก 2 ทบป้องกันเชือกหลุดระหว่างวิ่ง',
     icon: Footprints,
     defaultChecked: true,
   },
   {
     id: 'bib-number',
-    name: 'เบอร์วิ่งและชิปจับเวลา (Bib Number)',
-    nameEn: 'Bib Number',
-    category: 'must-have',
-    description: 'ติดไว้ที่หน้าอกเสื้อให้มองเห็นชัดเจน พร้อมกรอกข้อมูลติดต่อฉุกเฉินด้านหลัง BIB',
-    tip: 'ห้ามพับหรือกรีดทับแผ่นชิปจับเวลาที่ติดอยู่ด้านหลัง',
+    name: 'ป้ายหมายเลข BIB + ชิปจับเวลา RFID',
+    description: 'ติดที่หน้าอกเสื้อให้ชัดเจน พร้อมกรอกเบอร์ฉุกเฉินด้านหลัง',
     icon: Tag,
     defaultChecked: true,
   },
   {
-    id: 'hydration-pack',
-    name: 'เป้น้ำ / กระบอกน้ำพกพา (Hydration Pack)',
-    nameEn: 'Hydration Pack',
-    category: 'hydration',
-    description: 'กระบอกน้ำนิ่ม (Soft Flask) หรือเป้น้ำพกพา ช่วยจิบน้ำตามจังหวะของตัวเอง',
-    tip: 'งานมีจุดน้ำทุก 2 กม. แต่การพกขวดน้ำส่วนตัวช่วยลดขยะแก้วน้ำในสนามได้',
-    icon: Droplets,
-  },
-  {
     id: 'official-jersey',
     name: 'เสื้อวิ่ง Micro-Dry CHANGSUEK',
-    nameEn: 'Official Running Shirt',
-    category: 'gear',
-    description: 'เสื้อวิ่งที่ได้รับใน Race Pack ระบายเหงื่อได้แห้งไว เหมาะกับอากาศริมทะเล',
+    description: 'ระบายเหงื่อแห้งไว เหมาะกับอากาศริมชายหาด',
     icon: Shirt,
   },
   {
-    id: 'gps-watch',
-    name: 'นาฬิกาวิ่ง / โทรศัพท์มือถือ (GPS Watch & Phone)',
-    nameEn: 'GPS Watch / Smartphone',
-    category: 'gear',
-    description: 'ชาร์จแบตเตอรี่ให้เต็ม 100% สำหรับจับเพซ บันทึกเส้นทาง และติดต่อครอบครัว',
-    icon: Watch,
+    id: 'hydration-pack',
+    name: 'สายจูง / สมุดวัคซีน & ถุงเก็บมูล (สำหรับ Dog Run)',
+    description: 'ความยาวสายจูงไม่เกิน 1.5 เมตร เพื่อความปลอดภัยตลอดเส้นทาง',
+    icon: Droplets,
   },
   {
     id: 'sun-protection',
-    name: 'ครีมกันแดด & หมวกวิ่ง (Sun Protection)',
-    nameEn: 'Sun Protection & Visor',
-    category: 'health',
-    description: 'หมวกวิ่งช่วยบังแดดริมหาดยามเช้า และทาครีมกันแดดกันน้ำ SPF50+ PA++++',
+    name: 'ครีมกันแดด SPF50+ & หมวกวิ่ง/แว่นกันแดด',
+    description: 'ป้องกันแสงแดดอ่อนยามเช้าบริเวณชายหาดเปิดโล่ง',
     icon: Sun,
   },
   {
-    id: 'energy-gel',
-    name: 'เจลพลังงาน & เกลือแร่ (Energy Gels)',
-    nameEn: 'Energy Gels & Electrolytes',
-    category: 'hydration',
-    description: 'สำหรับนักวิ่งระยะ 10KM หรือผู้ที่ต้องการพลังงานเสริมระหว่างวิ่ง',
-    tip: 'ควรทดลองกินตอนซ้อมเพื่อดูการตอบสนองของกระเพาะอาหาร',
-    icon: HeartPulse,
-  },
-  {
-    id: 'phone-belt',
-    name: 'กระเป๋าคาดเอว / ปลอกแขนใส่มือถือ',
-    nameEn: 'Running Belt',
-    category: 'gear',
-    description: 'เก็บของจำเป็น กุญแจรถ บัตรประชาชน และเงินสดติดตัวแบบแนบกระชับลำตัว',
-    icon: Smartphone,
+    id: 'gps-watch',
+    name: 'นาฬิกาวิ่ง GPS / โทรศัพท์ชาร์จแบตเต็ม 100%',
+    description: 'สำหรับดูเพซ ถ่ายภาพที่ระลึก และสแกนรับเหรียญ',
+    icon: Watch,
   },
 ];
 
@@ -106,22 +68,16 @@ export const EssentialRunnerChecklist: React.FC = () => {
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>(() => {
     try {
       const saved = localStorage.getItem(CHECKLIST_STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
+      if (saved) return JSON.parse(saved);
     } catch {
-      // fallback
+      // ignore
     }
     const initial: { [key: string]: boolean } = {};
     DEFAULT_CHECKLIST.forEach((item) => {
-      if (item.defaultChecked) {
-        initial[item.id] = true;
-      }
+      if (item.defaultChecked) initial[item.id] = true;
     });
     return initial;
   });
-
-  const [filter, setFilter] = useState<'all' | 'must-have' | 'gear' | 'hydration' | 'health'>('all');
 
   useEffect(() => {
     try {
@@ -132,228 +88,112 @@ export const EssentialRunnerChecklist: React.FC = () => {
   }, [checkedItems]);
 
   const toggleItem = (id: string) => {
-    setCheckedItems((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setCheckedItems((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const totalItems = DEFAULT_CHECKLIST.length;
-  const completedCount = DEFAULT_CHECKLIST.filter((item) => !!checkedItems[item.id]).length;
-  const progressPercentage = Math.round((completedCount / totalItems) * 100);
-
-  const handleSelectAll = () => {
-    const all: { [key: string]: boolean } = {};
+  const resetChecklist = () => {
+    const initial: { [key: string]: boolean } = {};
     DEFAULT_CHECKLIST.forEach((item) => {
-      all[item.id] = true;
+      if (item.defaultChecked) initial[item.id] = true;
     });
-    setCheckedItems(all);
+    setCheckedItems(initial);
   };
 
-  const handleReset = () => {
-    setCheckedItems({});
-  };
-
-  const filteredItems = DEFAULT_CHECKLIST.filter((item) => {
-    if (filter === 'all') return true;
-    return item.category === filter;
-  });
+  const completedCount = DEFAULT_CHECKLIST.filter((i) => checkedItems[i.id]).length;
+  const totalCount = DEFAULT_CHECKLIST.length;
+  const progressPercent = Math.round((completedCount / totalCount) * 100);
 
   return (
-    <section id="runner-checklist" className="py-14 sm:py-20 bg-white relative overflow-hidden select-none">
-      {/* Subtle Background Elements */}
-      <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-50/60 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-10 w-96 h-96 bg-amber-50/60 rounded-full blur-3xl pointer-events-none" />
+    <div
+      id="runner-checklist"
+      className="h-full bg-white rounded-[32px] border-[3px] border-[#2A1450] shadow-[0_18px_38px_-14px_rgba(42,20,80,0.28),0_6px_0_#2A1450] overflow-hidden flex flex-col justify-between"
+    >
+      {/* Top Accent Bar */}
+      <div className="h-2 w-full bg-gradient-to-r from-[#16A34A] via-[#FFC928] to-[#7B3FC6]" />
 
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-gray-100">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#5B20A8]/10 border border-[#5B20A8]/20 text-[#5B20A8] text-xs font-black tracking-widest uppercase mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-[#D48A06]" />
-              <span>RACE DAY PREPARATION</span>
-            </div>
-            <h2 className="text-2xl sm:text-4xl font-black text-[#24172F] tracking-tight">
-              Essential Runner Checklist
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600 font-medium mt-1">
-              เช็กลิสต์อุปกรณ์จำเป็นสำหรับนักวิ่ง ก่อนออกสตาร์ท CHANGSUEK RUN 2027
-            </p>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="flex items-center gap-3 self-start md:self-auto">
-            <button
-              onClick={handleSelectAll}
-              className="px-3.5 py-1.5 rounded-xl border border-purple-200 hover:bg-purple-50 text-xs font-bold text-[#5B20A8] transition-colors cursor-pointer"
-            >
-              เลือกทั้งหมด
-            </button>
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-            >
-              <RefreshCw className="w-3 h-3" />
-              <span>รีเซ็ต</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Progress Overview Card */}
-        <div className="bg-gradient-to-br from-[#FAF8FE] via-white to-[#FFFDF7] rounded-3xl p-6 sm:p-8 border-2 border-purple-100 shadow-sm mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-            <div>
-              <span className="text-xs font-black uppercase text-[#5B20A8] tracking-wider">
-                ความพร้อมของคุณ (Readiness Level)
+      <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b-2 border-dashed border-[#2A1450]/15">
+            <div className="flex items-center gap-3">
+              <span className="w-11 h-11 rounded-2xl bg-[#DCFCE7] text-[#15803D] border-2 border-[#2A1450] shadow-[2px_2px_0_#2A1450] flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5 stroke-[2.4]" />
               </span>
-              <h3 className="text-lg sm:text-xl font-black text-[#24172F] mt-0.5">
-                {progressPercentage === 100 ? (
-                  <span className="text-emerald-600 flex items-center gap-2">
-                    🎉 เตรียมตัวครบถ้วน 100% พร้อมวิ่งเต็มพิกัด!
-                  </span>
-                ) : progressPercentage >= 50 ? (
-                  <span>👍 เตรียมพร้อมแล้ว {completedCount} จาก {totalItems} รายการ</span>
-                ) : (
-                  <span>🎒 เตรียมสัมภาระ {completedCount} จาก {totalItems} รายการ</span>
-                )}
-              </h3>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-[#2A1450] leading-tight">
+                  เช็กลิสต์เตรียมตัวก่อนวันวิ่ง
+                </h3>
+                <span className="block text-xs font-bold text-[#6B5A85]">
+                  ติ๊กเช็กความพร้อมส่วนตัวและอุปกรณ์น้องหมา ({completedCount}/{totalCount} รายการ)
+                </span>
+              </div>
             </div>
-            <div className="flex items-baseline gap-1 self-start sm:self-auto">
-              <span className="text-3xl sm:text-4xl font-black font-mono text-[#5B20A8]">
-                {progressPercentage}%
+
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-[#2A1450] text-[#FFC928] text-xs font-extrabold tabular-nums">
+                พร้อม {progressPercent}%
               </span>
-              <span className="text-xs text-gray-400 font-bold uppercase">เสร็จสิ้น</span>
+              <button
+                type="button"
+                onClick={resetChecklist}
+                title="รีเซ็ตเช็กลิสต์"
+                className="p-2 rounded-full bg-[#FAF7FF] hover:bg-purple-100 text-[#5B20A8] border border-purple-200 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
-          {/* Visual Progress Bar */}
-          <div className="w-full bg-gray-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-purple-100 shadow-inner">
-            <motion.div
-              className="h-full bg-gradient-to-r from-[#5B20A8] via-[#FFC928] to-[#2EAD62] rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercentage}%` }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
+          {/* Progress Bar */}
+          <div className="mt-3.5 h-2.5 w-full rounded-full bg-purple-100 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#16A34A] via-[#7B3FC6] to-[#F59E0B] transition-all duration-300 rounded-full"
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
-        </div>
 
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
-          {[
-            { id: 'all', label: 'ทั้งหมด' },
-            { id: 'must-have', label: 'ของจำเป็นต้องมี' },
-            { id: 'hydration', label: 'น้ำดื่ม & โภชนาการ' },
-            { id: 'gear', label: 'อุปกรณ์วิ่ง' },
-            { id: 'health', label: 'การปกป้องร่างกาย' },
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setFilter(cat.id as any)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
-                filter === cat.id
-                  ? 'bg-[#5B20A8] text-white border-[#5B20A8] shadow-sm'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-purple-200 hover:text-[#5B20A8]'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Checklist Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AnimatePresence>
-            {filteredItems.map((item) => {
-              const isChecked = !!checkedItems[item.id];
+          {/* Compact 2-Column Checklist Grid */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {DEFAULT_CHECKLIST.map((item) => {
               const Icon = item.icon;
-
+              const isChecked = !!checkedItems[item.id];
               return (
-                <motion.div
+                <button
                   key={item.id}
-                  layout
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
+                  type="button"
                   onClick={() => toggleItem(item.id)}
-                  className={`rounded-2xl p-4 sm:p-5 border-2 transition-all duration-200 cursor-pointer flex items-start gap-4 ${
+                  className={`text-left rounded-2xl p-3 border-2 transition-all cursor-pointer flex items-start gap-2.5 ${
                     isChecked
-                      ? 'bg-[#FAF8FE] border-[#5B20A8]/40 shadow-xs'
-                      : 'bg-white border-gray-100 hover:border-purple-200 shadow-sm hover:shadow-md'
+                      ? 'bg-[#F0FDF4] border-[#16A34A] shadow-2xs'
+                      : 'bg-[#FAF8FF] hover:bg-white border-purple-100 hover:border-purple-300'
                   }`}
                 >
-                  {/* Custom Checkbox Toggle Button */}
-                  <div className="mt-0.5 shrink-0 text-[#5B20A8]">
+                  <div className="mt-0.5 shrink-0">
                     {isChecked ? (
-                      <CheckCircle2 className="w-6 h-6 text-[#5B20A8] fill-[#5B20A8]/15" />
+                      <CheckCircle2 className="w-5 h-5 text-[#16A34A] fill-[#DCFCE7]" />
                     ) : (
-                      <Circle className="w-6 h-6 text-gray-300 hover:text-purple-400 transition-colors" />
+                      <Circle className="w-5 h-5 text-purple-300" />
                     )}
                   </div>
-
-                  {/* Icon Badge */}
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                      isChecked
-                        ? 'bg-[#5B20A8]/10 text-[#5B20A8]'
-                        : 'bg-gray-50 text-gray-500'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
-
-                  {/* Info Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4
-                        className={`text-sm sm:text-base font-black transition-all ${
-                          isChecked
-                            ? 'text-gray-400 line-through'
-                            : 'text-[#24172F]'
-                        }`}
-                      >
-                        {item.name}
-                      </h4>
-                      {item.category === 'must-have' && (
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-200 shrink-0">
-                          สำคัญมาก
-                        </span>
-                      )}
-                    </div>
-
-                    <p
-                      className={`text-xs mt-1 leading-relaxed ${
-                        isChecked ? 'text-gray-400' : 'text-gray-600 font-medium'
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className={`text-xs sm:text-[13px] font-extrabold leading-snug ${
+                        isChecked ? 'text-[#14532D]' : 'text-[#2A1450]'
                       }`}
                     >
+                      {item.name}
+                    </div>
+                    <div className="text-[11px] text-[#6B5A85] font-medium mt-0.5 line-clamp-1">
                       {item.description}
-                    </p>
-
-                    {item.tip && (
-                      <div className="mt-2 text-[11px] text-amber-700 bg-amber-50/80 rounded-lg px-2.5 py-1 flex items-start gap-1.5 border border-amber-200/60">
-                        <HelpCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                        <span>{item.tip}</span>
-                      </div>
-                    )}
+                    </div>
                   </div>
-                </motion.div>
+                  <Icon className="w-4 h-4 text-[#7B3FC6]/60 shrink-0 mt-0.5" />
+                </button>
               );
             })}
-          </AnimatePresence>
+          </div>
         </div>
-
-        {/* Motivational Footer Note */}
-        <div className="mt-8 p-4 rounded-2xl bg-purple-50/70 border border-purple-100 flex items-center justify-between flex-wrap gap-3">
-          <span className="text-xs text-[#5B20A8] font-bold">
-            💡 คำแนะนำ: บันทึกรายการของคุณไว้ในเครื่องนี้โดยอัตโนมัติ เพื่อนำมาเช็กซ้ำก่อนเดินทางในวันเสาร์ที่ 14 ก.พ. 2570
-          </span>
-          <span className="text-xs text-gray-500 font-mono font-bold">
-            {completedCount} / {totalItems} READY
-          </span>
-        </div>
-
       </div>
-    </section>
+    </div>
   );
 };
