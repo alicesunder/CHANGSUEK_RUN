@@ -1125,13 +1125,16 @@ export type TicketGroup = 'individual' | 'dog';
 export interface TicketCategory {
   id: RouteId;
   group: TicketGroup;
+  category?: TicketGroup;
   distanceLabel: string; // e.g. '5K'
   name: string;
   subtitle: string;
-  basePrice: number; // THB — individual: per runner / dog: 1 person + 1 dog
+  basePrice: number; // THB — single-digit test pricing
   baseLabel: string; // what the base price covers
   addPersonPrice?: number; // THB per extra person (dog categories only)
   addDogPrice?: number; // THB per extra dog (dog categories only)
+  extraPersonPrice?: number;
+  extraDogPrice?: number;
   badge?: string;
   emoji: string;
 }
@@ -1140,10 +1143,11 @@ export const ticketCategories: TicketCategory[] = [
   {
     id: '5km',
     group: 'individual',
+    category: 'individual',
     distanceLabel: '5K',
     name: '5 KM วิ่งบุคคลทั่วไป',
     subtitle: 'ก้าวแรกสู่สุขภาพที่ดี',
-    basePrice: 690,
+    basePrice: 5,
     baseLabel: 'ต่อ 1 คน',
     badge: 'ยอดนิยม',
     emoji: '👟',
@@ -1151,36 +1155,43 @@ export const ticketCategories: TicketCategory[] = [
   {
     id: '10km',
     group: 'individual',
+    category: 'individual',
     distanceLabel: '10K',
     name: '10 KM วิ่งบุคคลทั่วไป',
     subtitle: 'ท้าทายตัวเอง ไปให้ไกลกว่าเดิม',
-    basePrice: 890,
+    basePrice: 9,
     baseLabel: 'ต่อ 1 คน',
     emoji: '🏃',
   },
   {
     id: '1km',
     group: 'dog',
+    category: 'dog',
     distanceLabel: '1K',
     name: '1 KM วิ่งคู่น้องหมา',
     subtitle: 'วิ่งเล่นสบาย ๆ เหมาะกับทุกวัย',
-    basePrice: 790,
+    basePrice: 1,
     baseLabel: '1 คน + 1 น้องหมา',
-    addPersonPrice: 450,
-    addDogPrice: 250,
+    addPersonPrice: 2,
+    addDogPrice: 1,
+    extraPersonPrice: 2,
+    extraDogPrice: 1,
     badge: 'เริ่มต้นง่าย',
     emoji: '🐶',
   },
   {
     id: '3km',
     group: 'dog',
+    category: 'dog',
     distanceLabel: '3K',
     name: '3 KM วิ่งคู่น้องหมา',
     subtitle: 'คนกับน้องหมา วิ่งเคียงข้างกัน',
-    basePrice: 890,
+    basePrice: 3,
     baseLabel: '1 คน + 1 น้องหมา',
-    addPersonPrice: 500,
-    addDogPrice: 300,
+    addPersonPrice: 2,
+    addDogPrice: 1,
+    extraPersonPrice: 2,
+    extraDogPrice: 1,
     emoji: '🐕',
   },
 ];
@@ -1190,7 +1201,7 @@ export const ticketById = (id: RouteId): TicketCategory =>
 
 export const isDogCategory = (id: RouteId) => ticketById(id).group === 'dog';
 
-export const formatBaht = (n: number) => `${n.toLocaleString('th-TH')} บาท`;
+export const formatBaht = (n: number) => `${n.toLocaleString('th-TH')}`;
 
 export const calcTicketTotal = (id: RouteId, extraPeople = 0, extraDogs = 0) => {
   const t = ticketById(id);

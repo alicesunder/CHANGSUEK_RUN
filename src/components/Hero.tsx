@@ -11,11 +11,13 @@ import {
   Sparkles,
   Store,
   TicketCheck,
+  Heart,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { RouteId } from '../types';
 import { HeroCountdownTimer } from './HeroCountdownTimer';
 import { PawIcon } from './brand/DogDecor';
+import { LabradorMascot } from './brand/LabradorMascot';
 
 interface HeroProps {
   onOpenArtworkModal: () => void;
@@ -28,9 +30,9 @@ const COASTAL_SUNSET = '/images/hero/changsuek-run-coastal.jpg';
 
 const fadeMask: React.CSSProperties = {
   WebkitMaskImage:
-    'linear-gradient(to right, transparent 0%, #000 24%), linear-gradient(to bottom, transparent 0%, #000 10%)',
+    'linear-gradient(to right, transparent 0%, #000 22%), linear-gradient(to bottom, transparent 0%, #000 8%)',
   maskImage:
-    'linear-gradient(to right, transparent 0%, #000 24%), linear-gradient(to bottom, transparent 0%, #000 10%)',
+    'linear-gradient(to right, transparent 0%, #000 22%), linear-gradient(to bottom, transparent 0%, #000 8%)',
   WebkitMaskComposite: 'source-in',
   maskComposite: 'intersect',
 };
@@ -38,6 +40,7 @@ const fadeMask: React.CSSProperties = {
 export const Hero: React.FC<HeroProps> = ({
   onOpenArtworkModal,
   onOpenRegisterModal,
+  onSelectDistance,
 }) => {
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -46,68 +49,75 @@ export const Hero: React.FC<HeroProps> = ({
     }
   };
 
+  const mobileDistancePills: { id: RouteId; label: string; tag: string; color: string; bg: string }[] = [
+    { id: '1km', label: '1 KM', tag: 'Dog Mini', color: '#EA580C', bg: '#FFF7ED' },
+    { id: '3km', label: '3 KM', tag: 'Dog Run', color: '#0D9488', bg: '#F0FDFA' },
+    { id: '5km', label: '5 KM', tag: 'Fun Run', color: '#D97706', bg: '#FFFBEB' },
+    { id: '10km', label: '10 KM', tag: 'Mini Marathon', color: '#7C3AED', bg: '#FAF5FF' },
+  ];
+
   const quickNavItems = [
     {
       label: 'เกณฑ์การสมัคร',
       targetId: 'experience',
-      circleBg: '#E6D6FC',
-      iconColor: '#5B20A8',
+      circleBg: 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)',
+      iconColor: '#6D28D9',
       Icon: TicketCheck,
     },
     {
-      label: 'เส้นทางวิ่ง',
+      label: 'บัตร & ระยะวิ่ง',
       targetId: 'distances',
-      circleBg: '#C6F4DC',
-      iconColor: '#15803D',
+      circleBg: 'linear-gradient(135deg, #CCFBF1 0%, #99F6E4 100%)',
+      iconColor: '#0F766E',
       Icon: Mountain,
     },
     {
       label: 'ค่าธรรมเนียม',
       targetId: 'ticket-pricing',
-      circleBg: '#FDE68A',
+      circleBg: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
       iconColor: '#B45309',
       Icon: CircleDollarSign,
     },
     {
       label: 'แผนที่ GPS',
       targetId: 'schedule-and-map',
-      circleBg: '#BAE6FD',
+      circleBg: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
       iconColor: '#0369A1',
       Icon: MapPin,
     },
     {
       label: 'ตารางแข่งขัน',
       targetId: 'schedule-and-map',
-      circleBg: '#E9D5FF',
-      iconColor: '#6D28D9',
+      circleBg: 'linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%)',
+      iconColor: '#BE185D',
       Icon: Calendar,
     },
     {
       label: 'อันดับ & สถิติ',
       targetId: 'leaderboard',
-      circleBg: '#FEF08A',
+      circleBg: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
       iconColor: '#A16207',
       Icon: Crown,
     },
     {
       label: 'ที่พักใกล้สนาม',
       targetId: 'hotels',
-      circleBg: '#BBF7D0',
-      iconColor: '#166534',
+      circleBg: 'linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)',
+      iconColor: '#15803D',
       Icon: Camera,
     },
     {
-      label: 'ร้านค้า/ของที่ระลึก',
+      label: 'เสื้อ & เหรียญ',
       targetId: 'merch-showcase',
-      circleBg: '#DDD6FE',
+      circleBg: 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
       iconColor: '#5B21B6',
       Icon: Store,
     },
     {
       label: 'คำถามที่พบบ่อย',
       targetId: 'faq',
-      circleBg: '#FDE68A',
-      iconColor: '#B45309',
+      circleBg: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)',
+      iconColor: '#C2410C',
       Icon: HelpCircle,
     },
   ];
@@ -115,20 +125,28 @@ export const Hero: React.FC<HeroProps> = ({
   return (
     <>
       {/* ================================================================= */}
-      {/* 1. HERO SECTION (RESPONSIVE MOBILE SHOWCASE + DESKTOP MOCKUP)     */}
+      {/* 1. HERO SECTION (REDESIGNED MOBILE SHOWCASE + LUMINOUS DESKTOP)   */}
       {/* ================================================================= */}
       <section
         id="hero"
-        className="relative overflow-hidden text-[#2A1450]"
+        className="relative overflow-hidden text-[#261247]"
         style={{
           background:
-            'linear-gradient(180deg, #7AD0F7 0%, #BCE9FC 34%, #E6F6FA 66%, #FCE5A8 100%)',
+            'linear-gradient(180deg, #6BC8F5 0%, #B4E6FC 32%, #EAF7FC 64%, #FDE6AD 100%)',
         }}
       >
-        {/* Ambient Sun Glow for Mobile & Desktop */}
+        {/* Multi-Layered Ambient Sunbeams & Light Orbs */}
         <div
           aria-hidden="true"
-          className="absolute -top-12 right-1/4 w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-white/45 blur-3xl pointer-events-none"
+          className="absolute -top-20 left-1/2 -translate-x-1/2 lg:left-1/4 w-80 h-80 sm:w-[460px] sm:h-[460px] rounded-full bg-white/55 blur-3xl pointer-events-none"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute top-28 -left-16 w-64 h-64 rounded-full bg-[#FFE28A]/45 blur-3xl pointer-events-none"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute bottom-10 right-10 w-80 h-80 rounded-full bg-[#C084FC]/20 blur-3xl pointer-events-none"
         />
 
         {/* Desktop Beach Artwork Anchored Right */}
@@ -146,40 +164,79 @@ export const Hero: React.FC<HeroProps> = ({
           aria-hidden="true"
           animate={{ y: [0, -6, 0], rotate: [-6, -4, -6] }}
           transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="hidden xl:block absolute right-10 top-36 z-10 text-right pointer-events-none select-none"
+          className="hidden xl:block absolute right-10 top-28 z-10 text-right pointer-events-none select-none"
         >
-          <div className="font-display italic font-extrabold text-3xl text-white drop-shadow-[0_3px_6px_rgba(25,55,95,0.45)] leading-none">
+          <div className="font-display italic font-extrabold text-3xl text-white drop-shadow-[0_4px_10px_rgba(25,55,95,0.45)] leading-none">
             Run
           </div>
-          <div className="font-display italic font-bold text-lg text-white/95 drop-shadow-[0_2px_4px_rgba(25,55,95,0.45)] -mt-0.5">
+          <div className="font-display italic font-bold text-lg text-white/95 drop-shadow-[0_2px_6px_rgba(25,55,95,0.45)] -mt-0.5">
             — with —
           </div>
-          <div className="font-display italic font-extrabold text-3xl text-white drop-shadow-[0_3px_6px_rgba(25,55,95,0.45)] leading-tight">
+          <div className="font-display italic font-extrabold text-3xl text-[#FFE885] drop-shadow-[0_4px_10px_rgba(25,55,95,0.5)] leading-tight">
             Your Best
             <br />
             Friend
           </div>
         </motion.div>
 
-        <div className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-8 pt-20 sm:pt-26 lg:pt-28 pb-12 sm:pb-16 lg:pb-28 lg:min-h-[700px]">
+        {/* Desktop Floating Interactive Labrador Mascot Companion */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+          className="hidden lg:flex absolute bottom-16 right-8 xl:right-14 z-20 items-center gap-3 bg-white/85 backdrop-blur-xl rounded-3xl p-3 pr-5 border border-white shadow-[0_20px_45px_-12px_rgba(42,20,80,0.35),inset_0_1px_0_rgba(255,255,255,0.9)]"
+        >
+          <LabradorMascot
+            size={78}
+            interactive={true}
+            glowColor="rgba(251, 191, 36, 0.5)"
+          />
+          <div className="text-left">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100/90 text-amber-900 text-[10px] font-extrabold">
+              <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
+              <span>K9 BUDDY MASCOT</span>
+            </div>
+            <div className="text-sm font-black text-[#261247] mt-0.5">
+              พาน้องหมามาวิ่งด้วยกันนะ!
+            </div>
+            <button
+              type="button"
+              onClick={() => onSelectDistance('1km')}
+              className="mt-1 inline-flex items-center gap-1 text-xs font-extrabold text-[#6D28D9] hover:text-[#4C1D95] cursor-pointer"
+            >
+              <span>ดูบัตร Dog Run 1K & 3K</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </motion.div>
+
+        <div className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-8 pt-20 sm:pt-24 lg:pt-28 pb-12 sm:pb-16 lg:pb-28 lg:min-h-[700px]">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-[570px] text-center lg:text-left mx-auto lg:mx-0"
+            className="max-w-[580px] text-center lg:text-left mx-auto lg:mx-0"
           >
+            {/* Mobile-First Top Glass Event Pill */}
+            <div className="lg:hidden inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white shadow-[0_8px_20px_-6px_rgba(42,20,80,0.18)] text-[11px] font-extrabold text-[#3B1870] mb-3">
+              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
+              <span>15 ก.พ. 2570</span>
+              <span className="text-[#7B3FC6]/40">·</span>
+              <span>หาดชะอำ (ค่ายนเรศวร)</span>
+            </div>
+
             {/* Brand Logo Lockup */}
             <div className="flex flex-col items-center lg:items-start">
               <img
                 src="/images/brand/changsuek-run-logo.png"
                 alt="CHANGSUEK RUN - เห็นช้างวิ่ง วิ่งตามช้าง"
-                className="h-24 sm:h-28 lg:h-32 w-auto object-contain drop-shadow-[0_6px_12px_rgba(42,20,80,0.18)]"
+                className="h-22 sm:h-28 lg:h-32 w-auto object-contain drop-shadow-[0_8px_16px_rgba(42,20,80,0.2)]"
                 referrerPolicy="no-referrer"
               />
             </div>
 
             {/* Main Headline with Animated Paw Accents */}
-            <div className="relative inline-block mt-1.5 sm:mt-2">
+            <div className="relative inline-block mt-1 sm:mt-2">
               <motion.div
                 animate={{ y: [0, -5, 0], rotate: [12, 20, 12] }}
                 transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -194,98 +251,127 @@ export const Hero: React.FC<HeroProps> = ({
               >
                 <PawIcon size={20} color="#5B20A8" />
               </motion.div>
-              <h1 className="text-[38px] sm:text-6xl lg:text-[64px] font-extrabold leading-[1.06] tracking-tight text-[#33145A] drop-shadow-[0_2px_0_rgba(255,255,255,0.9)]">
+              <h1 className="text-[36px] sm:text-6xl lg:text-[64px] font-extrabold leading-[1.06] tracking-tight text-[#2D1052] drop-shadow-[0_2px_0_rgba(255,255,255,0.95)]">
                 วิ่งสนุกไปกับ
                 <br />
-                <span className="text-[#4B1C8C]">เพื่อนสี่ขา</span>
+                <span className="bg-gradient-to-r from-[#5B20A8] via-[#7C3AED] to-[#C026D3] bg-clip-text text-transparent drop-shadow-none">
+                  เพื่อนสี่ขาคู่ใจ
+                </span>
               </h1>
             </div>
 
-            <p className="mt-2.5 sm:mt-3 text-xs sm:text-base font-bold text-[#3A1F5D] max-w-[340px] sm:max-w-[440px] mx-auto lg:mx-0 leading-relaxed">
-              งานวิ่งรักษ์ช้างและน้องหมา เพื่อสุขภาพที่ดี
+            <p className="mt-2 sm:mt-3 text-xs sm:text-base font-bold text-[#3A1F5D] max-w-[350px] sm:max-w-[460px] mx-auto lg:mx-0 leading-relaxed">
+              งานวิ่งการกุศลรักษ์ช้างและพัฒนาศูนย์ฝึกสุนัขตำรวจ ค่ายพระรามหก
               <br className="hidden sm:inline" />
-              และสังคมที่อบอุ่นกว่าเดิม
+              ริมชายหาดชะอำ-หัวหิน บรรยากาศอบอุ่นสำหรับทุกครอบครัว
             </p>
 
             {/* ============================================================= */}
-            {/* MOBILE-ONLY FRAMED ARTWORK CARD (Interactive & Crisp on Phone) */}
+            {/* REDESIGNED MOBILE-ONLY HERO SHOWCASE CARD WITH LABRADOR       */}
             {/* ============================================================= */}
-            <div className="lg:hidden mt-4 mb-4 relative mx-auto max-w-[440px]">
-              <div
-                onClick={onOpenArtworkModal}
-                className="group relative rounded-[26px] overflow-hidden border-[3px] border-white shadow-[0_16px_34px_-12px_rgba(42,20,80,0.38)] bg-[#BCE9FC] cursor-pointer"
-              >
-                <img
-                  src={BEACH}
-                  alt="ช้างศึก นักวิ่ง และน้องหมาโกลเด้น วิ่งริมชายหาด"
-                  className="w-full h-52 sm:h-64 object-cover object-[68%_center] block"
-                  referrerPolicy="no-referrer"
-                />
+            <div className="lg:hidden mt-4 mb-5 relative mx-auto max-w-[430px]">
+              {/* Main Glassmorphic Hero Frame */}
+              <div className="relative rounded-[30px] p-2 bg-white/75 backdrop-blur-xl border-2 border-white shadow-[0_24px_48px_-12px_rgba(42,20,80,0.32),0_6px_16px_-4px_rgba(42,20,80,0.14)]">
+                <div
+                  onClick={onOpenArtworkModal}
+                  className="group relative rounded-[22px] overflow-hidden bg-[#BCE9FC] cursor-pointer"
+                >
+                  <img
+                    src={BEACH}
+                    alt="ช้างศึก นักวิ่ง และน้องหมาโกลเด้น วิ่งริมชายหาด"
+                    className="w-full h-56 sm:h-64 object-cover object-[66%_center] block transition-transform duration-700 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
 
-                {/* Soft bottom gradient for badge legibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2A1450]/75 via-transparent to-[#1E3A5F]/15 pointer-events-none" />
+                  {/* Luminous Sunset Vignette Scrim */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1E0B38]/85 via-[#1E0B38]/20 to-transparent pointer-events-none" />
 
-                {/* Top-Right Script Badge on Mobile */}
-                <div className="absolute top-3 right-3.5 text-right -rotate-6 pointer-events-none">
-                  <span className="block font-display italic font-black text-base text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.55)] leading-none">
-                    Run with Your
-                  </span>
-                  <span className="block font-display italic font-black text-lg text-[#FFE28A] drop-shadow-[0_2px_4px_rgba(0,0,0,0.55)] leading-tight">
-                    Best Friend
-                  </span>
+                  {/* Top-Left Live Badge */}
+                  <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-3 py-1 text-[10px] font-extrabold text-[#2A1450] shadow-md">
+                    <Sparkles className="w-3 h-3 text-[#F59E0B]" />
+                    <span>บัตรทดสอบระบบ 1–4 บาท · ออก BIB ทันที</span>
+                  </div>
+
+                  {/* Bottom Left Headline & Venue inside Mobile Artwork */}
+                  <div className="absolute bottom-3 left-3.5 right-28 text-left pointer-events-none">
+                    <span className="inline-block font-display italic font-black text-xs text-[#FFE28A] drop-shadow">
+                      Run with Your Best Friend
+                    </span>
+                    <div className="text-white font-extrabold text-sm sm:text-base leading-tight drop-shadow-md">
+                      ชายหาดค่ายนเรศวร ชะอำ-หัวหิน
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-white/90 mt-0.5">
+                      <MapPin className="w-3 h-3 text-[#FFC928] shrink-0" />
+                      <span className="truncate">จ.เพชรบุรี · แตะเพื่อดูภาพเต็ม</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Top-Left Event Distance Tag */}
-                <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-3 py-1 text-[10px] font-extrabold text-[#2A1450] shadow-md">
-                  <Sparkles className="w-3 h-3 text-[#F59E0B]" />
-                  <span>5K · 10K · Dog 1K & 3K</span>
+                {/* Floating Animated Labrador Mascot on Mobile Hero Card */}
+                <div className="absolute -bottom-3 right-2.5 z-20">
+                  <LabradorMascot
+                    size={86}
+                    speechText="มาวิ่งกันนะ!"
+                    interactive={true}
+                    glowColor="rgba(255, 201, 40, 0.65)"
+                  />
                 </div>
 
-                {/* Bottom Overlay Info Bar inside Mobile Hero Card */}
-                <div className="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between gap-2 bg-white/95 backdrop-blur-md rounded-2xl px-3 py-2 border border-white shadow-md">
-                  <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#2A1450]">
-                    <Calendar className="w-3.5 h-3.5 text-[#5B20A8] shrink-0" />
-                    <span>15 ก.พ. 2570</span>
-                  </div>
-                  <span className="w-1 h-1 rounded-full bg-[#7B3FC6]" />
-                  <div className="flex items-center gap-1 text-[11px] font-extrabold text-[#2A1450] truncate">
-                    <MapPin className="w-3.5 h-3.5 text-[#EA580C] shrink-0" />
-                    <span className="truncate">หาดชะอำ จ.เพชรบุรี</span>
-                  </div>
+                {/* Interactive 4-Distance Quick Tap Strip inside Mobile Hero */}
+                <div className="mt-2.5 pt-1 pr-20 grid grid-cols-4 gap-1.5">
+                  {mobileDistancePills.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => onSelectDistance(d.id)}
+                      style={{ backgroundColor: d.bg }}
+                      className="rounded-2xl py-1.5 px-1 border border-[#2A1450]/10 shadow-2xs flex flex-col items-center justify-center active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span
+                        className="font-display text-xs font-black leading-none"
+                        style={{ color: d.color }}
+                      >
+                        {d.label}
+                      </span>
+                      <span className="text-[9px] font-bold text-[#4B2D78] mt-0.5 truncate max-w-full">
+                        {d.tag}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Desktop Date & Venue Pills */}
+            {/* Desktop Date & Venue Glass Pills */}
             <div className="hidden lg:flex mt-6 flex-wrap gap-2.5 justify-start text-xs sm:text-[13px] font-bold text-[#2A1450]">
-              <span className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-xs rounded-full px-4 py-1.5 shadow-xs border border-white">
-                <Calendar className="w-4 h-4 text-[#5B20A8]" />
+              <span className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-4 py-2 shadow-[0_8px_20px_-6px_rgba(42,20,80,0.18)] border border-white">
+                <Calendar className="w-4 h-4 text-[#6D28D9]" />
                 <span>15 ก.พ. 2570</span>
               </span>
-              <span className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-xs rounded-full px-4 py-1.5 shadow-xs border border-white">
-                <MapPin className="w-4 h-4 text-[#5B20A8]" />
-                <span>หาดชะอำ จังหวัดเพชรบุรี</span>
+              <span className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-4 py-2 shadow-[0_8px_20px_-6px_rgba(42,20,80,0.18)] border border-white">
+                <MapPin className="w-4 h-4 text-[#EA580C]" />
+                <span>หาดชะอำ (ค่ายนเรศวร) จ.เพชรบุรี</span>
               </span>
             </div>
 
-            {/* 2 Action CTA Buttons (Side-by-Side on Mobile & Desktop) */}
-            <div className="mt-4 sm:mt-5 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3 justify-center lg:justify-start max-w-[440px] sm:max-w-none mx-auto lg:mx-0">
+            {/* 2 Action CTA Buttons (With Modern Light & Shadow Elevation) */}
+            <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3.5 justify-center lg:justify-start max-w-[430px] sm:max-w-none mx-auto lg:mx-0">
               <button
                 type="button"
                 onClick={onOpenRegisterModal}
-                className="relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-7 py-3 text-xs sm:text-base font-extrabold text-[#2A1450] bg-gradient-to-b from-[#FFD84D] to-[#F5B800] border-2 border-[#2A1450] shadow-[0_4px_0_#2A1450] hover:scale-[1.03] active:scale-95 transition-transform cursor-pointer sm:min-w-[180px]"
+                className="relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-7 py-3.5 text-xs sm:text-base font-extrabold text-[#261247] bg-gradient-to-b from-[#FFE268] via-[#FFC928] to-[#F59E0B] border-2 border-[#261247] luminous-pill-btn hover:scale-[1.03] active:scale-95 transition-transform cursor-pointer sm:min-w-[190px]"
               >
-                <span className="absolute inset-0 ticket-foil-shimmer opacity-50 pointer-events-none" />
-                <PawIcon size={16} color="#2A1450" className="relative z-10" />
+                <span className="absolute inset-0 ticket-foil-shimmer opacity-55 pointer-events-none" />
+                <PawIcon size={16} color="#261247" className="relative z-10" />
                 <span className="relative z-10">สมัครวิ่งตอนนี้</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => scrollToSection('distances')}
-                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-full px-4 sm:px-6 py-3 text-xs sm:text-base font-extrabold bg-white/95 hover:bg-white text-[#2A1450] border-2 border-[#2A1450] shadow-[0_4px_0_#2A1450] hover:scale-[1.03] active:scale-95 transition-transform cursor-pointer sm:min-w-[180px]"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-full px-4 sm:px-6 py-3.5 text-xs sm:text-base font-extrabold bg-white/95 hover:bg-white text-[#261247] border-2 border-[#261247]/80 shadow-[0_10px_24px_-8px_rgba(42,20,80,0.28),0_4px_0_#261247] hover:scale-[1.03] active:scale-95 transition-transform cursor-pointer sm:min-w-[185px]"
               >
-                <span>ดูรายละเอียดงาน</span>
+                <span>ดูบัตรวิ่งโฉมใหม่</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
@@ -305,7 +391,7 @@ export const Hero: React.FC<HeroProps> = ({
           />
           <path
             d="M0 60 C 360 88 920 18 1440 32 L1440 80 L0 80 Z"
-            fill="#371463"
+            fill="#2E1157"
           />
         </svg>
       </section>
@@ -313,8 +399,8 @@ export const Hero: React.FC<HeroProps> = ({
       {/* ================================================================= */}
       {/* 2. CURVED PURPLE COUNTDOWN & SUNSET QUOTE WAVE BANNER             */}
       {/* ================================================================= */}
-      <div className="relative bg-gradient-to-r from-[#2D0E52] via-[#3E176E] to-[#32125A] text-white overflow-hidden">
-        {/* Sunset Coastal Runner & Dog Background (Visible on both Mobile & Desktop) */}
+      <div className="relative bg-gradient-to-r from-[#2A0E4F] via-[#3D176E] to-[#2B1052] text-white overflow-hidden">
+        {/* Sunset Coastal Runner & Dog Background */}
         <div
           aria-hidden="true"
           className="absolute inset-0 md:inset-y-0 md:left-auto md:right-0 md:w-[52%] opacity-30 md:opacity-100 pointer-events-none"
@@ -378,17 +464,17 @@ export const Hero: React.FC<HeroProps> = ({
           />
           <path
             d="M0 28 C 420 74 980 70 1440 22 L1440 70 L0 70 Z"
-            fill="#F4ECFF"
+            fill="#FAF8FF"
           />
         </svg>
       </div>
 
       {/* ================================================================= */}
-      {/* 3. 9 QUICK-NAVIGATION ICON CARDS STRIP MATCHING MOCKUP            */}
+      {/* 3. 9 LUMINOUS QUICK-NAVIGATION ICON CARDS STRIP                   */}
       {/* ================================================================= */}
-      <div className="bg-gradient-to-b from-[#F4ECFF] via-[#FAF6FF] to-white pt-3 sm:pt-4 pb-6 sm:pb-10 relative z-20">
+      <div className="bg-gradient-to-b from-[#FAF8FF] via-[#F7F3FF] to-[#FAF8FF] pt-3 sm:pt-4 pb-6 sm:pb-10 relative z-20">
         <div className="max-w-[1360px] mx-auto px-3.5 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 sm:gap-3.5">
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5 sm:gap-3.5">
             {quickNavItems.map(({ label, targetId, circleBg, iconColor, Icon }, idx) => (
               <motion.button
                 key={label}
@@ -396,24 +482,19 @@ export const Hero: React.FC<HeroProps> = ({
                 initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: idx * 0.03 }}
-                whileHover={{ y: -6, scale: 1.04 }}
+                transition={{ duration: 0.3, delay: idx * 0.025 }}
+                whileHover={{ y: -5, scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => scrollToSection(targetId)}
-                className="group relative bg-white rounded-2xl p-2.5 sm:p-3.5 border-2 border-[#2A1450]/15 hover:border-[#2A1450] shadow-[0_8px_18px_-8px_rgba(58,21,100,0.22),0_3px_0_rgba(42,20,80,0.1)] hover:shadow-[0_16px_28px_-10px_rgba(91,32,168,0.35),0_5px_0_#2A1450] flex flex-col items-center justify-center gap-1.5 sm:gap-2.5 transition-all cursor-pointer overflow-hidden"
+                className="group relative bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3.5 border border-[#7B3FC6]/15 hover:border-[#7B3FC6]/45 shadow-[0_12px_26px_-10px_rgba(67,28,130,0.16),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-[0_18px_34px_-10px_rgba(91,32,168,0.28)] flex flex-col items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer overflow-hidden"
               >
-                {/* Top subtle color accent bar */}
                 <span
-                  className="absolute top-0 inset-x-0 h-1 opacity-80 group-hover:opacity-100 transition-opacity"
-                  style={{ background: iconColor }}
-                />
-                <span
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 border-2 border-white shadow-sm"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 border border-white shadow-sm"
                   style={{ background: circleBg, color: iconColor }}
                 >
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.4]" />
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.3]" />
                 </span>
-                <span className="text-[11px] sm:text-xs font-extrabold text-[#2A1450] group-hover:text-[#5B20A8] whitespace-nowrap truncate max-w-full">
+                <span className="text-[11px] sm:text-xs font-extrabold text-[#261247] group-hover:text-[#6D28D9] whitespace-nowrap truncate max-w-full">
                   {label}
                 </span>
               </motion.button>

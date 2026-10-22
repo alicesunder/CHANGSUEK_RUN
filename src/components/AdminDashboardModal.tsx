@@ -79,6 +79,7 @@ import {
 import { formatBaht, ticketById } from '../data/eventData';
 import { RunnerBibCard } from './RunnerBibCard';
 import { PawIcon } from './brand/DogDecor';
+import { SlipApiConfigBar } from './SlipApiConfigBar';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -183,7 +184,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     '3km': 2,
     '1km': 1,
   });
-  const [testQrAmount, setTestQrAmount] = useState<number>(890);
+  const [testQrAmount, setTestQrAmount] = useState<number>(5);
   const [testQrUrl, setTestQrUrl] = useState<string>('');
   const [savedToast, setSavedToast] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -1686,6 +1687,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     </div>
                   </div>
                 </div>
+
+                {/* External Slip Verification API Connection Bar */}
+                <SlipApiConfigBar defaultExpanded={true} />
 
                 {/* 2. Admin Username, Password & Security Policy Settings */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">

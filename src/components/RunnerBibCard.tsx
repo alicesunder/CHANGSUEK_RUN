@@ -22,9 +22,16 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Mail,
+  Download,
 } from 'lucide-react';
 import { RunnerProfile } from '../utils/runnerStorage';
 import { maskPhoneNumber } from '../utils/securityShield';
+import {
+  PrintFormatOption,
+  downloadOfficialBibAsPng,
+} from '../utils/ticketEmailAndPrint';
+import { TicketPrintEmailModal } from './TicketPrintEmailModal';
 import { PawIcon } from './brand/DogDecor';
 
 interface RunnerBibCardProps {
@@ -92,6 +99,9 @@ export const RunnerBibCard: React.FC<RunnerBibCardProps> = ({
   const [isFlipped, setIsFlipped] = useState(false);
   const [copiedToast, setCopiedToast] = useState(false);
   const [maskPii, setMaskPii] = useState(true);
+  const [printEmailModalOpen, setPrintEmailModalOpen] = useState(false);
+  const [printEmailInitialTab, setPrintEmailInitialTab] = useState<'print' | 'email'>('print');
+  const [printFormatChoice, setPrintFormatChoice] = useState<PrintFormatOption>('full_a4_receipt');
 
   const theme = routeTheme[profile.routeId] || routeTheme['5km'];
 
@@ -116,8 +126,15 @@ export const RunnerBibCard: React.FC<RunnerBibCardProps> = ({
     mouseY.set(0);
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleOpenPrintFormat = (fmt: PrintFormatOption = 'full_a4_receipt') => {
+    setPrintFormatChoice(fmt);
+    setPrintEmailInitialTab('print');
+    setPrintEmailModalOpen(true);
+  };
+
+  const handleOpenEmailPreview = () => {
+    setPrintEmailInitialTab('email');
+    setPrintEmailModalOpen(true);
   };
 
   const handleShare = async () => {
@@ -430,8 +447,35 @@ export const RunnerBibCard: React.FC<RunnerBibCardProps> = ({
         </motion.div>
       )}
 
-      {/* Action Buttons: Flip, Print, Share, Simulate */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* Action Buttons: Flip, Print (3 Formats), Email E-Ticket, Download PNG, Share, Simulate */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <button
+          type="button"
+          onClick={() => handleOpenPrintFormat('full_a4_receipt')}
+          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#FFD646] text-[#2A1450] border-2 border-[#2A1450] font-black text-xs shadow-[0_3px_0_#2A1450] active:translate-y-0.5 transition-all cursor-pointer"
+        >
+          <Printer className="w-4 h-4 stroke-[2.5]" />
+          <span>เลือกแบบ Print / PDF (3 แบบ)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleOpenEmailPreview}
+          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white border-2 border-[#2A1450] font-extrabold text-xs shadow-[0_3px_0_#2A1450] active:translate-y-0.5 transition-all cursor-pointer"
+        >
+          <Mail className="w-4 h-4" />
+          <span>ดูบัตรในอีเมล / ส่งซ้ำ</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => downloadOfficialBibAsPng(profile)}
+          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white hover:bg-purple-50 text-[#5B20A8] border-2 border-[#2A1450] font-extrabold text-xs shadow-[0_3px_0_#2A1450] active:translate-y-0.5 transition-all cursor-pointer"
+        >
+          <Download className="w-4 h-4" />
+          <span>โหลดรูป BIB (.PNG)</span>
+        </button>
+
         <button
           type="button"
           onClick={() => setIsFlipped((f) => !f)}
@@ -439,15 +483,6 @@ export const RunnerBibCard: React.FC<RunnerBibCardProps> = ({
         >
           <RotateCw className="w-4 h-4 text-[#7B3FC6]" />
           <span>{isFlipped ? 'ดูด้านหน้า BIB' : 'พลิกดูชิป RFID'}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={handlePrint}
-          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white hover:bg-purple-50 text-[#5B20A8] border-2 border-[#2A1450] font-extrabold text-xs shadow-[0_3px_0_#2A1450] active:translate-y-0.5 transition-all cursor-pointer"
-        >
-          <Printer className="w-4 h-4" />
-          <span>พิมพ์ / บันทึก PDF</span>
         </button>
 
         <button
@@ -463,12 +498,20 @@ export const RunnerBibCard: React.FC<RunnerBibCardProps> = ({
           <button
             type="button"
             onClick={onOpenSimulation}
-            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F5B800] text-[#17151C] border-2 border-[#2A1450] font-black text-xs shadow-[0_3px_0_#2A1450] active:translate-y-0.5 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-[#17151C] border-2 border-[#2A1450] font-black text-xs shadow-[0_3px_0_#2A1450] active:translate-y-0.5 transition-all cursor-pointer"
           >
             <span>▶ จำลองเส้นทาง</span>
           </button>
         )}
       </div>
+
+      <TicketPrintEmailModal
+        isOpen={printEmailModalOpen}
+        onClose={() => setPrintEmailModalOpen(false)}
+        profile={profile}
+        initialMode={printEmailInitialTab}
+        initialPrintFormat={printFormatChoice}
+      />
     </div>
   );
 };
