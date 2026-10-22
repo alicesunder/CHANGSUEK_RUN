@@ -70,7 +70,7 @@ export const RunnerQuickActions: React.FC<RunnerQuickActionsProps> = ({
       sub: 'จุดจอดรถ & การเดินทาง',
       icon: Car,
       color: 'text-[#54239A] bg-purple-50 border-purple-200',
-      action: () => onNavigateSection('highlights'),
+      action: () => onNavigateSection('faq'),
     },
     {
       id: 'safety',
@@ -78,7 +78,7 @@ export const RunnerQuickActions: React.FC<RunnerQuickActionsProps> = ({
       sub: 'การปฐมพยาบาล & ความปลอดภัย',
       icon: ShieldCheck,
       color: 'text-[#EF5350] bg-rose-50 border-rose-200',
-      action: () => onNavigateSection('highlights'),
+      action: () => onNavigateSection('faq'),
     },
     {
       id: 'hotels',

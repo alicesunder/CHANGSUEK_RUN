@@ -103,8 +103,8 @@ export const routesData: Record<RouteId, RouteData> = {
     type: 'Beach Path ไป-กลับ (ทางเรียบเลียบหาด)',
     difficulty: 'ง่าย (Easy)',
     durationEstimate: '10 - 20 นาที',
-    startTime: '07:00 น. (เวลาโดยประมาณ)',
-    cutoffTime: '07:45 น. (45 นาที)',
+    startTime: '17.30 น.',
+    cutoffTime: '18.15 น. (45 นาที)',
     description:
       'เส้นทางสั้นสำหรับคู่วิ่งสี่ขาที่อยากเริ่มต้นแบบสบาย ๆ ปล่อยตัวจากชายหาดหน้าโรงแรม Sea Sand Sun วิ่งเลียบหาดไปจุดกลับตัวแล้ววิ่งกลับมาเข้าเส้นชัยที่เดิม ไม่มีเนินชัน มีร่มเงาต้นสนบางช่วง',
     terrainType: 'ทางเลียบหาดค่ายนเรศวร พื้นเรียบ ไม่มีเนินชัน',
@@ -173,8 +173,8 @@ export const routesData: Record<RouteId, RouteData> = {
     type: 'Road & Coastal Path (ทางเรียบเลียบทะเลและถนนค่าย)',
     difficulty: 'ง่าย (Easy)',
     durationEstimate: '25 - 45 นาที',
-    startTime: '06:30 น. (เวลาโดยประมาณ)',
-    cutoffTime: '07:30 น. (1 ชั่วโมง)',
+    startTime: '17.15 น.',
+    cutoffTime: '18.15 น. (1 ชั่วโมง)',
     description:
       'เส้นทางวิ่งรอบแกนกลางค่ายนเรศวร วัดระยะรอบขอบเขต 4.08 กม. ปล่อยตัวจากชายหาดหน้าโรงแรม Sea Sand Sun วิ่งรับลมทะเลไปทางทิศตะวันออก ผ่านหน้ากองร้อยฝึกรบพิเศษ เลี้ยวลงทิศใต้ผ่านถนนฝั่งตะวันออก มุ่งสู่พระบรมราชานุสาวรีย์สมเด็จพระนเรศวรมหาราช แล้วตัดเลี้ยวขึ้นเหนือผ่านถนนแกนกลางค่ายฝั่งสระน้ำกลับสู่หาดและเข้าเส้นชัย',
     terrainType: 'ถนนคอนกรีตเรียบและทางเลียบหาดค่ายนเรศวร ไม่มีเนินชัน',
@@ -301,8 +301,8 @@ export const routesData: Record<RouteId, RouteData> = {
     type: 'Road & Camp Trail Mix (ทางถนนคอนกรีตผสมเลียบสระเก็บน้ำ)',
     difficulty: 'ปานกลาง (Moderate)',
     durationEstimate: '35 - 55 นาที',
-    startTime: '06:15 น. (เวลาโดยประมาณ)',
-    cutoffTime: '07:30 น. (1 ชั่วโมง 15 นาที)',
+    startTime: '17.00 น.',
+    cutoffTime: '18.15 น. (1 ชั่วโมง 15 นาที)',
     description:
       'เส้นทาง Challenge Run เต็มรูปแบบรอบขอบเขตค่ายนเรศวร วัดระยะจาก Google Earth ได้ 5.20 กม. (พื้นที่ 888,938.12 ม²) ปล่อยตัวจากชายหาดหน้า Sea Sand Sun วิ่งเลียบหาดมุ่งหน้าสู่กองร้อยฝึกรบพิเศษ เลี้ยวลงทิศใต้ผ่านลานพระบรมราชานุสาวรีย์สมเด็จพระนเรศวรมหาราช วิ่งเลียบถนนด้านทิศใต้ใกล้วัดมฤคทายวัน อ้อมรอบสระเก็บน้ำขนาดใหญ่ฝั่งตะวันตก วิ่งขึ้นถนนแนวเขตตะวันตกผ่าน "สถานีทดสอบจิตใจ" แล้ววนกลับเข้าสู่เส้นชัยริมทะเล',
     terrainType: 'ถนนคอนกรีตและลาดยางสลับทางเรียบเลียบสระน้ำ มีความร่มรื่นและปลอดภัย',
@@ -442,8 +442,8 @@ export const routesData: Record<RouteId, RouteData> = {
     type: 'Road & Nature Trail (ทางถนนเลียบหาดผสมเทรลป่าชายเลนทูลกระหม่อม)',
     difficulty: 'ท้าทาย (Challenging)',
     durationEstimate: '55 - 90 นาที',
-    startTime: '06:00 น. (เวลาโดยประมาณ)',
-    cutoffTime: '08:00 น. (2 ชั่วโมง)',
+    startTime: '16.30 น.',
+    cutoffTime: '18.30 น. (2 ชั่วโมง)',
     description:
       'เส้นทางไฮไลต์ระดับพรีเมียม วัดระยะทางจริงจาก Google Earth ได้ 10.52 กม. (พื้นที่รูปหลายเหลี่ยม 687,785.58 ม²) เชื่อมโยง 2 ดินแดนประวัติศาสตร์: ค่ายนเรศวร และ อุทยานสิ่งแวดล้อมนานาชาติสิรินธร ปล่อยตัวจากหาด Sea Sand Sun วิ่งรอบค่ายนเรศวรผ่านกองร้อยฝึกรบพิเศษ พระบรมราชานุสาวรีย์สมเด็จพระนเรศวรมหาราช ก่อนวิ่งข้ามเข้าสู่ "อุทยานสิ่งแวดล้อมนานาชาติสิรินธร" ลัดเลาะสะพานทางเดินธรรมชาติ "สวนป่าชายเลนทูลกระหม่อม" ใกล้พระราชนิเวศน์มฤคทายวัน สัมผัสป่าโกงกางเขียวขจีและลมทะเล ก่อนวนกลับเข้าเส้นชัยริมหาด',
     terrainType: 'ถนนคอนกรีตเลียบหาด ทางลาดยางในค่าย และทางเทรลธรรมชาติสะพานไม้ป่าชายเลน',
@@ -664,77 +664,96 @@ export const scheduleData: ScheduleDay[] = [
     ],
   },
   {
-    dateLabel: 'วันแข่งขัน (Race Day Timeline)',
-    title: 'วันแข่งขันจริง ปล่อยตัวยามรุ่งอรุณ',
-    description: 'บริเวณจุดปล่อยตัวชายหาดหน้าโรงแรม Sea Sand Sun ค่ายนเรศวร',
+    dateLabel: 'กำหนดการวันจัดงาน (Official Event Schedule)',
+    title: 'กำหนดการแข่งขัน กิจกรรมสถานี และคอนเสิร์ต',
+    description: 'บริเวณชายหาดหน้าโรงแรม Sea Sand Sun ค่ายนเรศวร',
     items: [
       {
         id: 's-6',
         day: 'race_day',
-        time: '04:00',
-        title: 'เปิดพื้นที่จัดงาน ลานจอดรถ และจุดรับฝากสัมภาระ',
-        description: 'นักวิ่งเริ่มทยอยเข้าพื้นที่ แนะนำให้เดินทางมาถึงก่อนเวลาปล่อยตัวอย่างน้อย 1 ชั่วโมง',
-        iconName: 'Car',
+        time: '09.00–14.00 น.',
+        title: 'การแข่งขันประกวดสุนัข',
+        description: 'สุนัขแฟนซีธีม War Dog • สุนัขสุขภาพดี • สุนัขเชื่อฟังคำสั่ง',
+        iconName: 'Trophy',
+        highlight: true,
       },
       {
         id: 's-7',
         day: 'race_day',
-        time: '04:30 - 05:40',
-        title: 'เช็กอินนักวิ่ง ตรวจความพร้อม และอบอุ่นร่างกาย (Warm-Up)',
-        description: 'กิจกรรมยืดเหยียดกล้ามเนื้อนำโดยทีมโค้ชวิ่งมืออาชีพริมหาด',
+        time: '09.00–11.00 น.',
+        title: 'กิจกรรมสถานีที่ 1 กิจกรรมยิงปืน',
+        description: 'ฐานกิจกรรมสถานีที่ 1 ภายในค่ายนเรศวร',
         iconName: 'Activity',
       },
       {
         id: 's-8',
         day: 'race_day',
-        time: '05:45',
-        title: 'พิธีเปิดการแข่งขัน CHANG SUEK RUN 2027',
-        description: 'กล่าวต้อนรับนักวิ่งโดยผู้ว่าราชการจังหวัดเพชรบุรีและผู้บังคับการค่ายนเรศวร',
-        iconName: 'Megaphone',
+        time: '10.00–12.00 น.',
+        title: 'กิจกรรมสถานีที่ 2 กิจกรรมหอสูง',
+        description: 'ฐานกิจกรรมสถานีที่ 2 ภายในค่ายนเรศวร',
+        iconName: 'Activity',
       },
       {
         id: 's-9',
         day: 'race_day',
-        time: '06:00',
-        title: 'ปล่อยตัวระยะ 10 KM WAR DOG TRAIL 🏃‍♂️🐾',
-        description: 'ปล่อยตัวกลุ่มนักวิ่งมินิมาราธอนผสมเทรล Cut-off 2 ชั่วโมง (08:00 น.)',
-        iconName: 'Flag',
-        highlight: true,
+        time: '13.00–15.00 น.',
+        title: 'กิจกรรมสถานีที่ 3 กิจกรรมอุโมงค์ลม',
+        description: 'ฐานกิจกรรมสถานีที่ 3 ภายในค่ายนเรศวร',
+        iconName: 'Activity',
       },
       {
         id: 's-10',
         day: 'race_day',
-        time: '06:15',
-        title: 'ปล่อยตัวระยะ 5 KM CHALLENGE RUN 🏃‍♀️',
-        description: 'ปล่อยตัวกลุ่มนักวิ่งระยะ 5 กิโลเมตร Cut-off 1 ชั่วโมง 15 นาที (07:30 น.)',
-        iconName: 'Flag',
+        time: '15.00–17.00 น.',
+        title: 'พิธีมอบรางวัลการประกวดสุนัข',
+        description: 'ประกาศผลและมอบรางวัลแก่ผู้ชนะการแข่งขัน',
+        iconName: 'Trophy',
         highlight: true,
       },
       {
         id: 's-11',
         day: 'race_day',
-        time: '06:30',
-        title: 'ปล่อยตัวระยะ 3 KM FUN RUN & FAMILY 👨‍👩‍👧‍👦',
-        description: 'ปล่อยตัวกลุ่มครอบครัวและนักวิ่งพร้อมสัตว์เลี้ยงแสนรัก Cut-off 1 ชั่วโมง (07:30 น.)',
+        time: '16.30 น.',
+        title: 'ปล่อยตัวนักวิ่ง 10 กิโลเมตร',
+        description: 'ประเภทบุคคลทั่วไป',
         iconName: 'Flag',
         highlight: true,
       },
       {
         id: 's-12',
         day: 'race_day',
-        time: '07:30 - 08:30',
-        title: 'อาหารเช้าเติมพลังเหรียญที่ระลึก และพิธีมอบรางวัล',
-        description: 'รับเหรียญ Finisher อาหารเช้าสไตล์เพชรบุรี-หัวหิน และประกาศผลรางวัล Over-All / กลุ่มอายุ',
-        iconName: 'Trophy',
+        time: '17.00 น.',
+        title: 'ปล่อยตัวนักวิ่ง 5 กิโลเมตร',
+        description: 'ประเภทบุคคลทั่วไป',
+        iconName: 'Flag',
         highlight: true,
       },
       {
         id: 's-13',
         day: 'race_day',
-        time: '09:00',
-        title: 'สิ้นสุดกิจกรรม ปิดเส้นทางการแข่งขัน และถ่ายภาพที่ระลึก',
-        description: 'ขอบคุณนักวิ่งทุกท่าน เดินทางกลับโดยสวัสดิภาพ',
+        time: '17.15 น.',
+        title: 'ปล่อยตัวนักวิ่ง 3 กิโลเมตร',
+        description: 'ประเภทวิ่งร่วมกับสุนัข',
+        iconName: 'Flag',
+        highlight: true,
+      },
+      {
+        id: 's-14',
+        day: 'race_day',
+        time: '17.30 น.',
+        title: 'ปล่อยตัวนักวิ่ง 1 กิโลเมตร',
+        description: 'ประเภทวิ่งร่วมกับสุนัข',
+        iconName: 'Flag',
+        highlight: true,
+      },
+      {
+        id: 's-15',
+        day: 'race_day',
+        time: '17.30 น. เป็นต้นไป',
+        title: 'การแสดงดนตรีและคอนเสิร์ต',
+        description: 'เปิดการแสดงโดยวงดนตรีตำรวจตระเวนชายแดน และการแสดงอื่น ๆ',
         iconName: 'Sparkles',
+        highlight: true,
       },
     ],
   },
@@ -1106,13 +1125,16 @@ export type TicketGroup = 'individual' | 'dog';
 export interface TicketCategory {
   id: RouteId;
   group: TicketGroup;
+  category?: TicketGroup;
   distanceLabel: string; // e.g. '5K'
   name: string;
   subtitle: string;
-  basePrice: number; // THB — individual: per runner / dog: 1 person + 1 dog
+  basePrice: number; // THB — single-digit test pricing
   baseLabel: string; // what the base price covers
   addPersonPrice?: number; // THB per extra person (dog categories only)
   addDogPrice?: number; // THB per extra dog (dog categories only)
+  extraPersonPrice?: number;
+  extraDogPrice?: number;
   badge?: string;
   emoji: string;
 }
@@ -1121,10 +1143,11 @@ export const ticketCategories: TicketCategory[] = [
   {
     id: '5km',
     group: 'individual',
+    category: 'individual',
     distanceLabel: '5K',
     name: '5 KM วิ่งบุคคลทั่วไป',
     subtitle: 'ก้าวแรกสู่สุขภาพที่ดี',
-    basePrice: 690,
+    basePrice: 5,
     baseLabel: 'ต่อ 1 คน',
     badge: 'ยอดนิยม',
     emoji: '👟',
@@ -1132,36 +1155,43 @@ export const ticketCategories: TicketCategory[] = [
   {
     id: '10km',
     group: 'individual',
+    category: 'individual',
     distanceLabel: '10K',
     name: '10 KM วิ่งบุคคลทั่วไป',
     subtitle: 'ท้าทายตัวเอง ไปให้ไกลกว่าเดิม',
-    basePrice: 890,
+    basePrice: 9,
     baseLabel: 'ต่อ 1 คน',
     emoji: '🏃',
   },
   {
     id: '1km',
     group: 'dog',
+    category: 'dog',
     distanceLabel: '1K',
     name: '1 KM วิ่งคู่น้องหมา',
     subtitle: 'วิ่งเล่นสบาย ๆ เหมาะกับทุกวัย',
-    basePrice: 790,
+    basePrice: 1,
     baseLabel: '1 คน + 1 น้องหมา',
-    addPersonPrice: 450,
-    addDogPrice: 250,
+    addPersonPrice: 2,
+    addDogPrice: 1,
+    extraPersonPrice: 2,
+    extraDogPrice: 1,
     badge: 'เริ่มต้นง่าย',
     emoji: '🐶',
   },
   {
     id: '3km',
     group: 'dog',
+    category: 'dog',
     distanceLabel: '3K',
     name: '3 KM วิ่งคู่น้องหมา',
     subtitle: 'คนกับน้องหมา วิ่งเคียงข้างกัน',
-    basePrice: 890,
+    basePrice: 3,
     baseLabel: '1 คน + 1 น้องหมา',
-    addPersonPrice: 500,
-    addDogPrice: 300,
+    addPersonPrice: 2,
+    addDogPrice: 1,
+    extraPersonPrice: 2,
+    extraDogPrice: 1,
     emoji: '🐕',
   },
 ];
@@ -1171,7 +1201,7 @@ export const ticketById = (id: RouteId): TicketCategory =>
 
 export const isDogCategory = (id: RouteId) => ticketById(id).group === 'dog';
 
-export const formatBaht = (n: number) => `${n.toLocaleString('th-TH')} บาท`;
+export const formatBaht = (n: number) => `${n.toLocaleString('th-TH')}`;
 
 export const calcTicketTotal = (id: RouteId, extraPeople = 0, extraDogs = 0) => {
   const t = ticketById(id);

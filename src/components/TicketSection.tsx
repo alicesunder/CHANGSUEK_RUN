@@ -1,76 +1,210 @@
-import React, { useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useMemo, useState, useRef } from 'react';
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from 'motion/react';
 import {
   ArrowRight,
   Calendar,
+  Check,
+  Clock,
   Droplets,
+  Flame,
   Headphones,
   Medal,
   Minus,
   Plus,
+  RotateCw,
   ShieldCheck,
   ShoppingCart,
   Shirt,
+  Sparkles,
   Ticket,
-  User,
   UserPlus,
+  Zap,
+  Heart,
 } from 'lucide-react';
 import { RouteId } from '../types';
-import { ticketCategories, TicketCategory, ticketById } from '../data/eventData';
+import {
+  ticketCategories,
+  TicketCategory,
+  ticketById,
+  routesData,
+} from '../data/eventData';
 import { PawIcon } from './brand/DogDecor';
+import { LABRADOR_SVG_PATH, LabradorMascot } from './brand/LabradorMascot';
 
 interface TicketSectionProps {
   selectedRoute: RouteId;
   onSelectRoute: (id: RouteId) => void;
   onOpenRegister: (id?: RouteId, extras?: { people: number; dogs: number }) => void;
+  onOpenComparisonModal?: () => void;
 }
 
-const BEACH = '/images/hero/beach-run.jpg';
+interface CardTheme {
+  grad: string;
+  headerGrad: string;
+  accent: string;
+  accentDark: string;
+  accentSoft: string;
+  borderIdle: string;
+  borderActive: string;
+  shadowIdle: string;
+  shadowActive: string;
+  badgeBg: string;
+  badgeText: string;
+  btnGrad: string;
+  btnText: string;
+  btnShadow: string;
+  iconColor: string;
+  serialCode: string;
+  bibPrefix: string;
+  waveLabel: string;
+  startTime: string;
+  cutoff: string;
+  elevationText: string;
+  waterCount: number;
+  sub: string;
+  burstEmojis: string[];
+}
 
-/** Per-card look: gradient, accent colour and which part of the beach artwork to show. */
-const look: Record<
-  RouteId,
-  { grad: string; accent: string; btn: string; icon: string; art: { size: string; pos: string }; sub: string }
-> = {
-  '5km': {
-    grad: 'linear-gradient(160deg,#FFE27A 0%,#FFF3C0 70%,#FFFBE8 100%)',
-    accent: '#F5B800',
-    btn: 'linear-gradient(180deg,#FFD84D,#F5B800)',
-    icon: '#E59A00',
-    art: { size: '330%', pos: '66% 52%' },
-    sub: 'สำหรับผู้เริ่มต้น และนักวิ่งทั่วไป',
-  },
-  '10km': {
-    grad: 'linear-gradient(160deg,#D5C2F8 0%,#E9DEFC 70%,#F6F0FF 100%)',
-    accent: '#7B3FC6',
-    btn: 'linear-gradient(180deg,#8B4FD8,#6D2FC4)',
-    icon: '#7B3FC6',
-    art: { size: '300%', pos: '28% 50%' },
-    sub: 'สำหรับนักวิ่งที่ท้าทายตนเอง',
-  },
+const look: Record<RouteId, CardTheme> = {
   '1km': {
-    grad: 'linear-gradient(160deg,#FFBF94 0%,#FFE0CC 70%,#FFF3EA 100%)',
-    accent: '#FF8A3D',
-    btn: 'linear-gradient(180deg,#FFA25F,#F2762A)',
-    icon: '#F2762A',
-    art: { size: '270%', pos: '92% 62%' },
-    sub: 'วิ่งเล่นสนุก ๆ ระยะทางสั้น ๆ',
+    grad: 'linear-gradient(165deg, #FFFFFF 0%, #FFF6F1 55%, #FFE6D8 100%)',
+    headerGrad: 'linear-gradient(135deg, #FF7A59 0%, #FF4E88 100%)',
+    accent: '#FF5A5F',
+    accentDark: '#C2410C',
+    accentSoft: '#FFF0E8',
+    borderIdle: 'rgba(255, 122, 89, 0.35)',
+    borderActive: '#FF5A5F',
+    shadowIdle: '0 18px 38px -14px rgba(255, 90, 95, 0.24), 0 4px 12px -2px rgba(255, 90, 95, 0.1)',
+    shadowActive: '0 24px 48px -12px rgba(255, 90, 95, 0.42), 0 0 0 3px rgba(255, 90, 95, 0.25)',
+    badgeBg: '#FFFFFF',
+    badgeText: '#E11D48',
+    btnGrad: 'linear-gradient(135deg, #FF7A59 0%, #FF4E88 100%)',
+    btnText: '#FFFFFF',
+    btnShadow: '0 10px 22px -6px rgba(255, 78, 136, 0.5)',
+    iconColor: '#F43F5E',
+    serialCode: 'CSR27-DOG-01K',
+    bibPrefix: '0188',
+    waveLabel: 'DOG MINI BEACH · 1K',
+    startTime: '17.30 น.',
+    cutoff: '45 นาที',
+    elevationText: 'เลียบหาดทราย 100%',
+    waterCount: 2,
+    sub: 'เดิน-วิ่งชิลล์ริมหาดกับน้องหมาตัวโปรด',
+    burstEmojis: ['🐶', '🐾', '💖', '🦴', '✨', '🎉'],
   },
   '3km': {
-    grad: 'linear-gradient(160deg,#9FE8C6 0%,#D3F4E5 70%,#EEFBF4 100%)',
-    accent: '#2EAD62',
-    btn: 'linear-gradient(180deg,#52CB8D,#2EAD62)',
-    icon: '#2EAD62',
-    art: { size: '300%', pos: '96% 60%' },
-    sub: 'สนุกได้ไกลกว่า ไปด้วยกัน',
+    grad: 'linear-gradient(165deg, #FFFFFF 0%, #F0FDF9 55%, #CCFBF1 100%)',
+    headerGrad: 'linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)',
+    accent: '#0D9488',
+    accentDark: '#0F766E',
+    accentSoft: '#E6FFFA',
+    borderIdle: 'rgba(16, 185, 129, 0.35)',
+    borderActive: '#10B981',
+    shadowIdle: '0 18px 38px -14px rgba(16, 185, 129, 0.24), 0 4px 12px -2px rgba(14, 165, 233, 0.1)',
+    shadowActive: '0 24px 48px -12px rgba(16, 185, 129, 0.42), 0 0 0 3px rgba(16, 185, 129, 0.25)',
+    badgeBg: '#FEF9C3',
+    badgeText: '#065F46',
+    btnGrad: 'linear-gradient(135deg, #10B981 0%, #0284C7 100%)',
+    btnText: '#FFFFFF',
+    btnShadow: '0 10px 22px -6px rgba(16, 185, 129, 0.48)',
+    iconColor: '#0D9488',
+    serialCode: 'CSR27-DOG-03K',
+    bibPrefix: '0388',
+    waveLabel: 'DOG BUDDY RUN · 3K',
+    startTime: '17.15 น.',
+    cutoff: '60 นาที',
+    elevationText: 'เลียบหาด + ทิวสนร่มรื่น',
+    waterCount: 3,
+    sub: 'วิ่งสนุกกำลังดี ไปด้วยกันทั้งคนและสุนัข',
+    burstEmojis: ['🐕', '🐾', '💚', '🏅', '✨', '🌊'],
+  },
+  '5km': {
+    grad: 'linear-gradient(165deg, #FFFFFF 0%, #FFFBEB 55%, #FEF08A 100%)',
+    headerGrad: 'linear-gradient(135deg, #F59E0B 0%, #FF6B6B 100%)',
+    accent: '#F59E0B',
+    accentDark: '#B45309',
+    accentSoft: '#FEF3C7',
+    borderIdle: 'rgba(245, 158, 11, 0.38)',
+    borderActive: '#F59E0B',
+    shadowIdle: '0 18px 38px -14px rgba(245, 158, 11, 0.24), 0 4px 12px -2px rgba(245, 158, 11, 0.1)',
+    shadowActive: '0 24px 48px -12px rgba(245, 158, 11, 0.42), 0 0 0 3px rgba(245, 158, 11, 0.28)',
+    badgeBg: '#FFFFFF',
+    badgeText: '#B45309',
+    btnGrad: 'linear-gradient(135deg, #FBBF24 0%, #F97316 100%)',
+    btnText: '#261247',
+    btnShadow: '0 10px 22px -6px rgba(245, 158, 11, 0.5)',
+    iconColor: '#D97706',
+    serialCode: 'CSR27-FUN-05K',
+    bibPrefix: '0588',
+    waveLabel: 'FUN & MASS RUN · 5K',
+    startTime: '17.00 น.',
+    cutoff: '75 นาที',
+    elevationText: 'ทางเรียบ + ชายหาด',
+    waterCount: 3,
+    sub: 'สำหรับผู้เริ่มต้น สายสุขภาพ และครอบครัว',
+    burstEmojis: ['👟', '✨', '🏅', '⚡', '🌟', '🎉'],
+  },
+  '10km': {
+    grad: 'linear-gradient(165deg, #FFFFFF 0%, #F5F3FF 55%, #E9D5FF 100%)',
+    headerGrad: 'linear-gradient(135deg, #6366F1 0%, #9333EA 52%, #EC4899 100%)',
+    accent: '#8B5CF6',
+    accentDark: '#5B21B6',
+    accentSoft: '#F3E8FF',
+    borderIdle: 'rgba(139, 92, 246, 0.35)',
+    borderActive: '#8B5CF6',
+    shadowIdle: '0 18px 38px -14px rgba(139, 92, 246, 0.25), 0 4px 12px -2px rgba(236, 72, 153, 0.1)',
+    shadowActive: '0 24px 48px -12px rgba(139, 92, 246, 0.44), 0 0 0 3px rgba(139, 92, 246, 0.28)',
+    badgeBg: '#FEF08A',
+    badgeText: '#4C1D95',
+    btnGrad: 'linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)',
+    btnText: '#FFFFFF',
+    btnShadow: '0 10px 22px -6px rgba(147, 51, 234, 0.5)',
+    iconColor: '#7C3AED',
+    serialCode: 'CSR27-PRO-10K',
+    bibPrefix: '1088',
+    waveLabel: 'MINI MARATHON · 10K',
+    startTime: '16.30 น.',
+    cutoff: '120 นาที',
+    elevationText: 'รอบค่ายนเรศวรครบวง',
+    waterCount: 5,
+    sub: 'ท้าทายสถิติใหม่บนเส้นทางชายหาดประวัติศาสตร์',
+    burstEmojis: ['🏃', '🔥', '🏆', '⚡', '✨', '💜'],
   },
 };
 
-const perkList = (isDog: boolean) => [
-  { Icon: Shirt, text: isDog ? 'เสื้อที่ระลึกสำหรับคนและน้องหมา' : 'เสื้อที่ระลึก' },
-  { Icon: Medal, text: 'เหรียญ Finisher' },
-  { Icon: Ticket, text: 'เบอร์วิ่ง (BIB)' },
-  { Icon: Droplets, text: isDog ? 'น้ำดื่มและของว่างสำหรับน้องหมา' : 'น้ำดื่มและผลไม้' },
+const BURST_VECTORS = [
+  { dx: -56, dy: -52, rot: -24 },
+  { dx: 0, dy: -68, rot: 10 },
+  { dx: 56, dy: -50, rot: 26 },
+  { dx: -68, dy: 4, rot: -30 },
+  { dx: 68, dy: 8, rot: 30 },
+  { dx: -44, dy: 52, rot: -18 },
+  { dx: 46, dy: 52, rot: 20 },
+];
+
+const compactPerks = (isDog: boolean) => [
+  {
+    Icon: Shirt,
+    title: isDog ? 'เสื้อคน + ผ้าพันคอหมา' : 'เสื้อวิ่ง Micro-Dry',
+  },
+  {
+    Icon: Medal,
+    title: 'เหรียญรางวัล 3D',
+  },
+  {
+    Icon: Ticket,
+    title: isDog ? 'BIB คู่ คน+สุนัข' : 'ป้าย BIB + ชิปเวลา',
+  },
+  {
+    Icon: Droplets,
+    title: isDog ? 'น้ำดื่ม & ขนมน้องหมา' : 'อาหาร & เกลือแร่',
+  },
 ];
 
 const TicketCard: React.FC<{
@@ -82,118 +216,540 @@ const TicketCard: React.FC<{
 }> = ({ t, selected, index, onSelect, onRegister }) => {
   const l = look[t.id];
   const isDog = t.group === 'dog';
+  const routeInfo = routesData[t.id];
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [burstKey, setBurstKey] = useState(0);
+  const [isPopping, setIsPopping] = useState(false);
+  const [stubTorn, setStubTorn] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Interactive 3D tilt motion values
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { stiffness: 260, damping: 24 };
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [5, -5]), springConfig);
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-5, 5]), springConfig);
+  const glareX = useSpring(useTransform(mouseX, [-0.5, 0.5], [0, 100]), springConfig);
+  const glareY = useSpring(useTransform(mouseY, [-0.5, 0.5], [0, 100]), springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  const handleCardClick = () => {
+    setBurstKey((prev) => prev + 1);
+    setIsPopping(true);
+    setTimeout(() => setIsPopping(false), 160);
+    onSelect();
+  };
+
+  const handleRegisterClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStubTorn(true);
+    setBurstKey((prev) => prev + 1);
+    setTimeout(() => {
+      setStubTorn(false);
+      onRegister();
+    }, 220);
+  };
+
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 36, scale: 0.95 }}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 28, scale: 0.96 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, amount: 0.1 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 18, delay: index * 0.07 }}
-      whileHover={{ y: -6 }}
-      onClick={onSelect}
-      className="relative flex flex-col h-full overflow-hidden rounded-[26px] cursor-pointer bg-white/70"
-      style={{
-        background: l.grad,
-        border: selected ? `3px solid ${l.accent}` : '3px solid rgba(255,255,255,.9)',
-        boxShadow: selected
-          ? `0 16px 34px -10px ${l.accent}88`
-          : '0 10px 26px -12px rgba(75,45,120,.35)',
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{
+        type: 'spring',
+        stiffness: 220,
+        damping: 22,
+        delay: index * 0.06,
       }}
+      className="perspective-1200 h-full relative"
     >
-      {/* Artwork cropped from the hero picture, fading into the card */}
-      <div
-        aria-hidden="true"
-        className="absolute top-0 right-0 w-[52%] h-[150px] sm:h-[160px] pointer-events-none"
-        style={{
-          backgroundImage: `url(${BEACH})`,
-          backgroundSize: l.art.size,
-          backgroundPosition: l.art.pos,
-          WebkitMaskImage: 'linear-gradient(to left, #000 55%, transparent 100%)',
-          maskImage: 'linear-gradient(to left, #000 55%, transparent 100%)',
-          borderTopRightRadius: 24,
-        }}
-      />
-
-      {isDog && (
-        <span
-          className="absolute top-3 left-3 z-10 text-[11px] font-bold text-white px-2.5 py-0.5 rounded-md"
-          style={{ background: l.accent }}
-        >
-          Dog Run
-        </span>
-      )}
-
-      <div className="relative z-[1] p-5 pt-5 flex flex-col flex-1">
-        <div className={isDog ? 'pt-5' : ''}>
-          <div className="font-display text-5xl sm:text-6xl font-bold leading-none text-[#2A1450] tracking-tight">
-            {t.distanceLabel}
-          </div>
-          <div className="mt-2 text-sm font-bold text-[#2A1450] leading-tight">{t.name}</div>
-          <div className="text-xs font-medium text-[#4B2D78]/80 mt-0.5">{l.sub}</div>
-        </div>
-
-        {/* Price pill */}
-        <div className="mt-4 rounded-2xl bg-white/95 shadow-sm px-3 py-2.5 text-center">
-          <span className="font-display text-3xl font-bold text-[#2A1450]">
-            {t.basePrice.toLocaleString('th-TH')}
-          </span>
-          <span className="ml-1 text-sm font-bold text-[#2A1450]">บาท</span>
-          <span className="ml-1 text-xs font-semibold text-[#6B5A85]">/ {t.baseLabel}</span>
-        </div>
-
-        <ul className="mt-4 space-y-2 text-[13px] font-medium text-[#2A1450] mb-5">
-          {perkList(isDog).map(({ Icon, text }) => (
-            <li key={text} className="flex items-center gap-2.5">
-              <span
-                className="w-6 h-6 rounded-lg bg-white/90 flex items-center justify-center shrink-0 shadow-sm"
-                style={{ color: l.icon }}
+      {/* ============================================================ */}
+      {/* PLAYFUL CLICK PARTICLE BURST                                 */}
+      {/* ============================================================ */}
+      <AnimatePresence>
+        {burstKey > 0 && (
+          <div
+            key={burstKey}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center overflow-visible"
+          >
+            {BURST_VECTORS.map((vec, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 1, x: 0, y: 0, scale: 0.4, rotate: 0 }}
+                animate={{
+                  opacity: [1, 1, 0],
+                  x: vec.dx,
+                  y: vec.dy,
+                  scale: [0.5, 1.25, 0.85],
+                  rotate: vec.rot,
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ type: 'tween', duration: 0.6, ease: 'easeOut' }}
+                className="absolute text-xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)] select-none"
               >
-                <Icon className="w-3.5 h-3.5" />
-              </span>
-              {text}
-            </li>
-          ))}
-        </ul>
+                {l.burstEmojis[i % l.burstEmojis.length]}
+              </motion.span>
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
 
-        <button
+      <motion.div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          rotateX: isFlipped ? 0 : rotateX,
+          rotateY: isFlipped ? 180 : rotateY,
+        }}
+        animate={{
+          scale: isPopping ? 0.97 : selected ? 1.015 : 1,
+          y: isPopping ? -2 : selected ? -6 : 0,
+        }}
+        whileHover={{ y: -8, scale: 1.02 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 18 }}
+        onClick={handleCardClick}
+        className="relative h-full w-full preserve-3d cursor-pointer select-none group"
+      >
+        {/* ============================================================ */}
+        {/* FRONT OF MODERN COMPACT FESTIVAL PASS                        */}
+        {/* ============================================================ */}
+        <article
+          className="relative flex flex-col h-full rounded-[28px] overflow-hidden backface-hidden transition-all duration-300"
+          style={{
+            background: l.grad,
+            border: selected ? `2.5px solid ${l.borderActive}` : `1.5px solid ${l.borderIdle}`,
+            boxShadow: selected ? l.shadowActive : l.shadowIdle,
+          }}
+        >
+          {/* Soft Iridescent Foil Sheen on Hover */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-[28px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          >
+            <div className="absolute -inset-y-12 w-28 bg-gradient-to-r from-transparent via-white/70 to-transparent animate-ticket-shimmer" />
+          </div>
+
+          {/* Interactive Specular Pointer Light Glare */}
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover:opacity-50 transition-opacity duration-300"
+            style={{
+              background: useTransform(
+                [glareX, glareY],
+                ([x, y]) =>
+                  `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.92) 0%, transparent 58%)`
+              ),
+            }}
+          />
+
+          {/* 1. COMPACT LUMINOUS HEADER WITH ANIMATED LABRADOR / MEDALLION */}
+          <div
+            className="relative px-4 pt-3.5 pb-4 text-white overflow-hidden"
+            style={{ background: l.headerGrad }}
+          >
+            {/* Top Specular Highlight Rim */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 top-0 h-px bg-white/60 pointer-events-none"
+            />
+            {/* Soft Ambient Glow Circle */}
+            <div
+              aria-hidden="true"
+              className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/25 blur-2xl pointer-events-none"
+            />
+
+            {/* Top Row: Category Pill + 3D BIB Flip Button */}
+            <div className="relative z-10 flex items-center justify-between gap-1.5 mb-2">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs"
+                  style={{ background: l.badgeBg, color: l.badgeText }}
+                >
+                  {isDog ? (
+                    <>
+                      <PawIcon size={10} color="currentColor" />
+                      <span>DOG RUN</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3 h-3 fill-current" />
+                      <span>RUNNER</span>
+                    </>
+                  )}
+                </span>
+
+                {t.badge && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-black/25 text-white backdrop-blur-md border border-white/25">
+                    <Sparkles className="w-2.5 h-2.5 text-[#FFE28A]" />
+                    <span>{t.badge}</span>
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsFlipped(true);
+                }}
+                className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-white/20 hover:bg-white text-white hover:text-[#261247] backdrop-blur-md px-2.5 py-1 rounded-full border border-white/35 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                title="พลิกดูตัวอย่างป้ายหมายเลขวิ่ง (BIB)"
+              >
+                <RotateCw className="w-3 h-3 transition-transform group-hover:rotate-180 duration-500" />
+                <span>พลิกดู BIB</span>
+              </button>
+            </div>
+
+            {/* Distance Title + Cute Mascot Avatar */}
+            <div className="relative z-10 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-4xl sm:text-[42px] font-black leading-none tracking-tight text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.22)]">
+                    {t.distanceLabel}
+                  </span>
+                  <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md bg-black/25 text-white/95 border border-white/20">
+                    BIB #{l.bibPrefix}
+                  </span>
+                </div>
+                <h4 className="mt-1 text-sm font-extrabold text-white/95 truncate">
+                  {t.name}
+                </h4>
+              </div>
+
+              {/* Cute Floating Mascot: Animated Labrador for Dog Runs, Glowing Medallion for 5K/10K */}
+              <motion.div
+                animate={
+                  selected || isPopping
+                    ? { y: [0, -5, 0], scale: [1, 1.1, 1] }
+                    : { y: 0, scale: 1 }
+                }
+                transition={{ type: 'tween', duration: 0.45, ease: 'easeOut' }}
+                className="relative w-14 h-14 rounded-2xl bg-white/95 border-2 border-white shadow-[0_10px_20px_-6px_rgba(0,0,0,0.28)] flex items-center justify-center shrink-0 overflow-hidden group-hover:scale-110 group-hover:-rotate-3 transition-transform"
+              >
+                {isDog ? (
+                  <img
+                    src={LABRADOR_SVG_PATH}
+                    alt="Labrador Mascot"
+                    className="w-13 h-13 object-contain translate-y-0.5"
+                  />
+                ) : (
+                  <span className="text-2xl sm:text-3xl">{t.emoji}</span>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Compact Inline Telemetry Strip inside Header Bottom */}
+            <div className="relative z-10 mt-3 pt-2 border-t border-white/20 flex items-center justify-between text-[11px] font-bold text-white/95">
+              <span className="inline-flex items-center gap-1">
+                <Clock className="w-3 h-3 text-[#FFE28A]" />
+                <span>ปล่อยตัว {l.startTime}</span>
+              </span>
+              <span className="opacity-40">·</span>
+              <span className="inline-flex items-center gap-1">
+                <Flame className="w-3 h-3 text-[#FFE28A]" />
+                <span>{l.cutoff}</span>
+              </span>
+              <span className="opacity-40">·</span>
+              <span className="inline-flex items-center gap-1">
+                <Droplets className="w-3 h-3 text-[#FFE28A]" />
+                <span>น้ำ {l.waterCount} จุด</span>
+              </span>
+            </div>
+          </div>
+
+          {/* 2. COMPACT BODY: SUBTITLE, STAMP GIMMICK & 2x2 PERK GRID */}
+          <div className="p-4 pb-3 flex-1 flex flex-col justify-between relative z-10">
+            <div>
+              {/* Subtitle + Interactive Paw Stamp Indicator */}
+              <div className="flex items-center justify-between gap-2 mb-2.5">
+                <p className="text-[11px] font-bold text-[#4B2D78] leading-snug line-clamp-1">
+                  {l.sub}
+                </p>
+                <AnimatePresence mode="wait">
+                  {selected ? (
+                    <motion.span
+                      key="stamped"
+                      initial={{ scale: 1.7, rotate: -14, opacity: 0 }}
+                      animate={{ scale: 1, rotate: -4, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 15 }}
+                      className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full text-white shadow-xs shrink-0"
+                      style={{ background: l.accent }}
+                    >
+                      <Check className="w-3 h-3 stroke-[3]" />
+                      <span>ปั๊มเลือกแล้ว</span>
+                    </motion.span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-[#6B5A85] bg-white/80 px-2 py-0.5 rounded-full border border-slate-200/80 shrink-0">
+                      แตะเพื่อเลือก
+                    </span>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Compact 2x2 Grid of Included Perks */}
+              <div className="grid grid-cols-2 gap-1.5">
+                {compactPerks(isDog).map(({ Icon, title }) => (
+                  <div
+                    key={title}
+                    className="flex items-center gap-1.5 bg-white/90 rounded-xl px-2.5 py-2 border border-white shadow-[0_2px_8px_-2px_rgba(42,20,80,0.08)]"
+                  >
+                    <span
+                      className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: l.accentSoft, color: l.iconColor }}
+                    >
+                      <Icon className="w-3.5 h-3.5 stroke-[2.3]" />
+                    </span>
+                    <span className="text-[11px] font-extrabold text-[#261247] leading-tight truncate">
+                      {title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Dog Run Add-on Pill */}
+            {isDog ? (
+              <div
+                className="mt-2.5 px-3 py-1.5 rounded-xl bg-white/90 border border-dashed flex items-center justify-between text-[11px] font-extrabold"
+                style={{ borderColor: l.accent }}
+              >
+                <span className="text-[#4B2D78] flex items-center gap-1">
+                  <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
+                  <span>เพิ่มคน/น้องหมาได้:</span>
+                </span>
+                <span className="tabular-nums font-black" style={{ color: l.accentDark }}>
+                  +{t.addPersonPrice}฿/คน · +{t.addDogPrice}฿/ตัว
+                </span>
+              </div>
+            ) : (
+              <div className="mt-2.5 px-3 py-1.5 rounded-xl bg-white/75 border border-slate-200/70 flex items-center justify-between text-[11px] font-bold text-[#6B5A85]">
+                <span>เส้นทางมาตรฐาน:</span>
+                <span className="font-extrabold text-[#261247]">{l.elevationText}</span>
+              </div>
+            )}
+          </div>
+
+          {/* 3. PERFORATED TEAR-OFF NOTCH DIVIDER */}
+          <div className="relative flex items-center justify-between px-2" aria-hidden="true">
+            <div
+              className="-ml-4 w-5 h-5 rounded-full bg-[#F5F0FF] shrink-0"
+              style={{
+                borderRight: selected ? `2.5px solid ${l.borderActive}` : `1.5px solid ${l.borderIdle}`,
+              }}
+            />
+            <div className="w-full border-t-2 border-dashed border-[#261247]/15 mx-1.5" />
+            <span
+              className="text-[9px] font-mono font-extrabold tracking-widest uppercase shrink-0 px-2 py-0.5 rounded-full border border-white shadow-2xs flex items-center gap-1"
+              style={{ background: l.accentSoft, color: l.accentDark }}
+            >
+              <Ticket className="w-2.5 h-2.5" />
+              <span>{l.serialCode}</span>
+            </span>
+            <div className="w-full border-t-2 border-dashed border-[#261247]/15 mx-1.5" />
+            <div
+              className="-mr-4 w-5 h-5 rounded-full bg-[#F5F0FF] shrink-0"
+              style={{
+                borderLeft: selected ? `2.5px solid ${l.borderActive}` : `1.5px solid ${l.borderIdle}`,
+              }}
+            />
+          </div>
+
+          {/* 4. INTERACTIVE TEAR-STUB FOOTER: PRICE & 1-CLICK REGISTER */}
+          <motion.div
+            animate={stubTorn ? { y: 6, rotate: 1.5 } : { y: 0, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+            className="p-4 pt-2.5 bg-white/90 backdrop-blur-md relative z-10"
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <div>
+                <span className="block text-[10px] font-bold text-[#6B5A85]">
+                  ราคาบัตร ({t.baseLabel})
+                </span>
+                <div className="flex items-baseline gap-1">
+                  <span
+                    className="font-display text-3xl font-black tabular-nums leading-none"
+                    style={{ color: l.accentDark }}
+                  >
+                    {t.basePrice.toLocaleString('th-TH')}
+                  </span>
+                  <span className="text-xs font-extrabold text-[#261247]">บาท</span>
+                </div>
+              </div>
+
+              {/* Cute Interactive Barcode + Labrador Paw Stamp */}
+              <div className="text-right flex items-center gap-2" aria-hidden="true">
+                <div>
+                  <div className="inline-flex items-end gap-[2px] h-5 opacity-65">
+                    {[2, 3.5, 1.5, 3, 1.5, 3.5, 2, 1.5, 3, 2].map((w, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-[#261247] rounded-full inline-block"
+                        style={{
+                          width: `${w}px`,
+                          height: idx % 2 === 0 ? '100%' : '75%',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <span className="block text-[8px] font-mono font-extrabold text-[#6B5A85] tracking-widest">
+                    E-PASS
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={handleRegisterClick}
+              className="relative overflow-hidden w-full rounded-2xl py-2.5 px-4 flex items-center justify-center gap-2 font-extrabold text-xs sm:text-sm transition-all cursor-pointer"
+              style={{
+                background: l.btnGrad,
+                color: l.btnText,
+                boxShadow: l.btnShadow,
+              }}
+            >
+              <span className="absolute inset-0 ticket-foil-shimmer opacity-40 pointer-events-none" />
+              <Ticket className="w-4 h-4 shrink-0 relative z-10" />
+              <span className="relative z-10">สมัครวิ่งระยะ {t.distanceLabel}</span>
+              <ArrowRight className="w-4 h-4 ml-auto relative z-10 transition-transform group-hover:translate-x-1" />
+            </motion.button>
+          </motion.div>
+        </article>
+
+        {/* ============================================================ */}
+        {/* BACK OF RUNNING PASS (3D FLIP: OFFICIAL BIB & LABRADOR K9)   */}
+        {/* ============================================================ */}
+        <article
           onClick={(e) => {
             e.stopPropagation();
-            onRegister();
+            setIsFlipped(false);
           }}
-          className="mt-auto w-full rounded-full py-3 px-4 flex items-center justify-center gap-2 font-bold text-[15px] transition-transform hover:scale-[1.02] active:scale-95"
-          style={{ background: l.btn, color: t.id === '5km' ? '#2A1450' : '#fff', boxShadow: `0 6px 14px -6px ${l.accent}` }}
+          style={{
+            transform: 'rotateY(180deg)',
+            background: l.grad,
+            border: `2.5px solid ${l.borderActive}`,
+            boxShadow: l.shadowActive,
+          }}
+          className="absolute inset-0 rounded-[28px] overflow-hidden backface-hidden flex flex-col justify-between p-4"
         >
-          <PawIcon size={16} color="currentColor" />
-          สมัคร {t.distanceLabel}
-          <ArrowRight className="w-4 h-4 ml-auto" />
-        </button>
-      </div>
-    </motion.article>
+          {/* 4 Classic Marathon BIB Pin Holes */}
+          <div className="absolute top-3 left-3 w-3 h-3 rounded-full bg-white border border-slate-300 shadow-inner" />
+          <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-white border border-slate-300 shadow-inner" />
+          <div className="absolute bottom-3 left-3 w-3 h-3 rounded-full bg-white border border-slate-300 shadow-inner" />
+          <div className="absolute bottom-3 right-3 w-3 h-3 rounded-full bg-white border border-slate-300 shadow-inner" />
+
+          <div className="pt-1">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center gap-2">
+                <img
+                  src={LABRADOR_SVG_PATH}
+                  alt="Labrador Mascot"
+                  className="w-8 h-8 object-contain"
+                />
+                <div>
+                  <span
+                    className="text-[9px] font-black uppercase tracking-widest block"
+                    style={{ color: l.accentDark }}
+                  >
+                    OFFICIAL RACE BIB PREVIEW
+                  </span>
+                  <span className="text-xs font-extrabold text-[#261247]">
+                    ป้ายเบอร์วิ่ง {t.distanceLabel}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsFlipped(false);
+                }}
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#261247] text-white hover:bg-[#5B20A8] transition-colors cursor-pointer"
+              >
+                <RotateCw className="w-3 h-3" />
+                <span>พลิกกลับ</span>
+              </button>
+            </div>
+
+            {/* Simulated BIB Number Box */}
+            <div
+              className="mt-3 rounded-2xl p-3.5 text-center shadow-md relative overflow-hidden text-white"
+              style={{ background: l.headerGrad }}
+            >
+              <div className="text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full inline-block bg-black/25 text-white">
+                {l.waveLabel}
+              </div>
+              <div className="font-display text-4xl sm:text-5xl font-black tracking-wider text-white my-1 tabular-nums drop-shadow">
+                {l.bibPrefix}
+              </div>
+              <div className="text-[11px] font-extrabold text-white/95 truncate">
+                YOUR NAME · {t.distanceLabel}
+              </div>
+            </div>
+
+            {/* Route & Telemetry Specs */}
+            <div className="mt-3 space-y-1.5 text-[11px]">
+              <div className="px-3 py-2 rounded-xl bg-white/90 border border-white shadow-2xs flex items-center justify-between">
+                <span className="font-bold text-[#6B5A85]">เส้นทาง:</span>
+                <span className="font-extrabold text-[#261247]">{l.elevationText}</span>
+              </div>
+              <div className="px-3 py-2 rounded-xl bg-white/90 border border-white shadow-2xs flex items-center justify-between">
+                <span className="font-bold text-[#6B5A85]">ความยาก:</span>
+                <span className="font-extrabold text-[#261247]">{routeInfo.difficulty}</span>
+              </div>
+              <div className="px-3 py-2 rounded-xl bg-white/90 border border-white shadow-2xs flex items-center justify-between">
+                <span className="font-bold text-[#6B5A85]">ปล่อยตัว / Cut-off:</span>
+                <span className="font-extrabold tabular-nums" style={{ color: l.accentDark }}>
+                  {l.startTime} ({l.cutoff})
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2.5 border-t border-dashed border-slate-200">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRegister();
+              }}
+              className="w-full rounded-2xl py-2.5 px-4 flex items-center justify-center gap-2 font-extrabold text-xs sm:text-sm cursor-pointer"
+              style={{
+                background: l.btnGrad,
+                color: l.btnText,
+                boxShadow: l.btnShadow,
+              }}
+            >
+              <PawIcon size={14} color="currentColor" />
+              <span>จองเลข BIB ระยะ {t.distanceLabel}</span>
+              <ArrowRight className="w-4 h-4 ml-auto" />
+            </button>
+          </div>
+        </article>
+      </motion.div>
+    </motion.div>
   );
 };
-
-const GroupPanel: React.FC<{
-  title: string;
-  hint: string;
-  icon: React.ReactNode;
-  iconColor: string;
-  children: React.ReactNode;
-}> = ({ title, hint, icon, iconColor, children }) => (
-  <div className="rounded-[30px] bg-white/80 backdrop-blur-sm border border-white shadow-[0_14px_40px_-18px_rgba(75,45,120,.35)] p-4 sm:p-5">
-    <div className="flex items-center gap-3 mb-4 px-1">
-      <span
-        className="w-11 h-11 rounded-2xl flex items-center justify-center text-white"
-        style={{ background: iconColor }}
-      >
-        {icon}
-      </span>
-      <div>
-        <h3 className="text-xl sm:text-2xl font-bold text-[#2A1450] leading-tight">{title}</h3>
-        <p className="text-xs sm:text-sm font-medium text-[#6B5A85]">{hint}</p>
-      </div>
-    </div>
-    {children}
-  </div>
-);
 
 /** Calculator state: one registration at a time (1 KM or 3 KM). */
 type Dist = '1km' | '3km';
@@ -209,25 +765,27 @@ const Qty: React.FC<{
   max: number;
   label: string;
 }> = ({ value, onChange, max, label }) => (
-  <div className="flex items-center rounded-full bg-[#F3EEFB] border border-[#E2D6F5] overflow-hidden">
+  <div className="flex items-center rounded-full bg-[#F5F0FF] border border-[#7B3FC6]/20 overflow-hidden shadow-2xs">
     <button
       type="button"
       aria-label={`ลด ${label}`}
       disabled={value <= 0}
       onClick={() => onChange(value - 1)}
-      className="w-8 h-8 flex items-center justify-center text-[#6D2FC4] disabled:opacity-30 hover:bg-[#E9DEFC]"
+      className="w-7 h-7 flex items-center justify-center text-[#261247] disabled:opacity-30 hover:bg-[#E9D5FF] active:scale-90 transition cursor-pointer"
     >
-      <Minus className="w-4 h-4" />
+      <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
     </button>
-    <span className="w-7 text-center text-sm font-bold text-[#2A1450] tabular-nums">{value}</span>
+    <span className="w-6 text-center text-xs font-extrabold text-[#261247] tabular-nums">
+      {value}
+    </span>
     <button
       type="button"
       aria-label={`เพิ่ม ${label}`}
       disabled={value >= max}
       onClick={() => onChange(value + 1)}
-      className="w-8 h-8 flex items-center justify-center text-[#6D2FC4] disabled:opacity-30 hover:bg-[#E9DEFC]"
+      className="w-7 h-7 flex items-center justify-center text-[#261247] disabled:opacity-30 hover:bg-[#FFC928] active:scale-90 transition cursor-pointer"
     >
-      <Plus className="w-4 h-4" />
+      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
     </button>
   </div>
 );
@@ -236,23 +794,30 @@ export const TicketSection: React.FC<TicketSectionProps> = ({
   selectedRoute,
   onSelectRoute,
   onOpenRegister,
+  onOpenComparisonModal,
 }) => {
-  const individual = ticketCategories.filter((t) => t.group === 'individual');
-  const dog = ticketCategories.filter((t) => t.group === 'dog');
+  const [filterTab, setFilterTab] = useState<'all' | 'individual' | 'dog'>('all');
   const [counts, setCounts] = useState<Counts>(emptyCounts);
 
+  const individual = ticketCategories.filter((t) => t.group === 'individual');
+  const dog = ticketCategories.filter((t) => t.group === 'dog');
+
+  const t5k = ticketById('5km');
+  const t10k = ticketById('10km');
+  const t1k = ticketById('1km');
+  const t3k = ticketById('3km');
+
   const rows = [
-    { label: '5 กม. บุคคล', price: '690 บาท' },
-    { label: '10 กม. บุคคล', price: '890 บาท' },
-    { label: 'Dog 1 กม. (1 คน + 1 น้องหมา)', price: '790 บาท' },
-    { label: 'Dog 3 กม. (1 คน + 1 น้องหมา)', price: '890 บาท' },
-    { label: 'Dog 1 กม. เพิ่มคน', price: '+450 บาท/คน' },
-    { label: 'Dog 1 กม. เพิ่มสุนัข', price: '+250 บาท/ตัว' },
-    { label: 'Dog 3 กม. เพิ่มคน', price: '+500 บาท/คน' },
-    { label: 'Dog 3 กม. เพิ่มสุนัข', price: '+300 บาท/ตัว' },
+    { label: '5 กม. บุคคลทั่วไป (Fun & Mass Run)', badge: '5K', price: `${t5k.basePrice} บาท`, note: 'ต่อ 1 คน' },
+    { label: '10 กม. บุคคลทั่วไป (Mini Marathon)', badge: '10K', price: `${t10k.basePrice} บาท`, note: 'ต่อ 1 คน' },
+    { label: 'Dog Run 1 กม. (แพ็กเกจคู่ 1 คน + 1 น้องหมา)', badge: '1K DOG', price: `${t1k.basePrice} บาท`, note: 'แพ็กเกจหลัก' },
+    { label: 'Dog Run 3 กม. (แพ็กเกจคู่ 1 คน + 1 น้องหมา)', badge: '3K DOG', price: `${t3k.basePrice} บาท`, note: 'แพ็กเกจหลัก' },
+    { label: 'Dog Run 1 กม. เพิ่มผู้ร่วมวิ่ง', badge: '+คน', price: `+${t1k.addPersonPrice ?? 2} บาท`, note: 'ต่อ 1 คน' },
+    { label: 'Dog Run 1 กม. เพิ่มสุนัข', badge: '+หมา', price: `+${t1k.addDogPrice ?? 1} บาท`, note: 'ต่อ 1 ตัว' },
+    { label: 'Dog Run 3 กม. เพิ่มผู้ร่วมวิ่ง', badge: '+คน', price: `+${t3k.addPersonPrice ?? 2} บาท`, note: 'ต่อ 1 คน' },
+    { label: 'Dog Run 3 กม. เพิ่มสุนัข', badge: '+หมา', price: `+${t3k.addDogPrice ?? 1} บาท`, note: 'ต่อ 1 ตัว' },
   ];
 
-  // Changing one distance clears the other so the calculator always describes ONE registration.
   const update = (d: Dist, field: 'base' | 'people' | 'dogs', value: number) => {
     const other: Dist = d === '1km' ? '3km' : '1km';
     setCounts((c) => {
@@ -271,176 +836,416 @@ export const TicketSection: React.FC<TicketSectionProps> = ({
     const c = counts[active];
     const t = ticketById(active);
     const total =
-      c.base * t.basePrice + c.people * (t.addPersonPrice ?? 0) + c.dogs * (t.addDogPrice ?? 0);
-    return { active, total, c };
+      c.base * t.basePrice +
+      c.people * (t.addPersonPrice ?? 0) +
+      c.dogs * (t.addDogPrice ?? 0);
+    return {
+      active,
+      total,
+      c,
+      totalPeople: c.base > 0 ? 1 + c.people : 0,
+      totalDogs: c.base > 0 ? 1 + c.dogs : 0,
+    };
   }, [counts]);
 
-  const calcRows: { d: Dist; field: 'base' | 'people' | 'dogs'; label: string; price: number; max: number; Icon: any; color: string }[] = [];
+  const calcRows: {
+    d: Dist;
+    field: 'base' | 'people' | 'dogs';
+    label: string;
+    price: number;
+    max: number;
+    Icon: any;
+    color: string;
+  }[] = [];
+
   (['1km', '3km'] as Dist[]).forEach((d) => {
     const t = ticketById(d);
     const km = d === '1km' ? '1' : '3';
     calcRows.push(
-      { d, field: 'base', label: `Dog ${km} กม. (1 คน + 1 น้องหมา)`, price: t.basePrice, max: 1, Icon: PawIcon, color: '#E59A00' },
-      { d, field: 'people', label: `Dog ${km} กม. เพิ่มคน`, price: t.addPersonPrice ?? 0, max: 9, Icon: UserPlus, color: '#6D2FC4' },
-      { d, field: 'dogs', label: `Dog ${km} กม. เพิ่มสุนัข`, price: t.addDogPrice ?? 0, max: 9, Icon: PawIcon, color: '#F2762A' },
+      {
+        d,
+        field: 'base',
+        label: `Dog ${km} กม. (1 คน + 1 น้องหมา)`,
+        price: t.basePrice,
+        max: 1,
+        Icon: PawIcon,
+        color: '#F43F5E',
+      },
+      {
+        d,
+        field: 'people',
+        label: `Dog ${km} กม. เพิ่มคน`,
+        price: t.addPersonPrice ?? 0,
+        max: 9,
+        Icon: UserPlus,
+        color: '#7C3AED',
+      },
+      {
+        d,
+        field: 'dogs',
+        label: `Dog ${km} กม. เพิ่มสุนัข`,
+        price: t.addDogPrice ?? 0,
+        max: 9,
+        Icon: PawIcon,
+        color: '#0D9488',
+      }
     );
   });
 
   return (
     <div>
-      {/* ---------- Banner header with the beach artwork ---------- */}
+      {/* ---------- 1. EVENT CATEGORY HEADER WITH LABRADOR MASCOT ---------- */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 18 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="relative overflow-hidden rounded-[32px] mb-5 min-h-[340px] sm:min-h-[400px] flex items-end"
-        style={{
-          backgroundImage: `url(${BEACH})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 42%',
-        }}
+        className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-7"
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/55 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/10 to-transparent hidden sm:block" />
-        <div className="relative z-10 w-full px-5 sm:px-8 pb-6 pt-44 sm:pt-52">
-          <img
-            src="/images/brand/changsuek-run-logo.png"
-            alt="CHANGSUEK RUN"
-            className="absolute left-5 sm:left-8 top-5 h-24 sm:h-32 w-auto drop-shadow-lg"
-          />
-          <div className="flex items-center gap-3 sm:gap-4">
-            <span className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/90 shadow flex items-center justify-center">
-              <PawIcon size={30} color="#7B3FC6" />
-            </span>
-            <div>
-              <h2 className="text-3xl sm:text-5xl font-bold text-[#2A1450] leading-tight">เลือกบัตรวิ่งของคุณ</h2>
-              <p className="text-sm sm:text-base font-medium text-[#4B2D78]">
-                เลือกประเภทการวิ่งที่ใช่ แล้วมาร่วมสร้างความทรงจำดี ๆ ไปด้วยกัน
-              </p>
-            </div>
+        <div className="flex items-center gap-3.5">
+          <div className="relative shrink-0">
+            <LabradorMascot size={66} interactive={true} />
           </div>
+          <div>
+            <span className="block text-[11px] font-mono font-extrabold uppercase tracking-[0.2em] text-[#7B3FC6]">
+              COLLECTIBLE RUNNING PASS · บัตรวิ่งโฉมใหม่
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-bold text-[#261247] leading-tight">
+              เลือกบัตรวิ่งของคุณ
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-[#6B5A85] mt-0.5">
+              ดีไซน์บัตรใหม่สีสันสดใส กะทัดรัด แตะที่บัตรเพื่อปั๊มตราเลือก หรือกด <strong>“พลิกดู BIB”</strong> ได้ทุกใบ
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Interactive Category Filter Segmented Control */}
+          <div
+            role="tablist"
+            aria-label="กรองประเภทบัตรวิ่ง"
+            className="inline-flex items-center gap-1 p-1 rounded-full bg-white/90 backdrop-blur-md border border-[#7B3FC6]/20 shadow-[0_8px_20px_-6px_rgba(91,32,168,0.15)]"
+          >
+            {[
+              { id: 'all', label: 'ทั้งหมด (4 ระยะ)' },
+              { id: 'dog', label: '🐾 วิ่งกับน้องหมา (1K/3K)' },
+              { id: 'individual', label: '🏃 วิ่งบุคคล (5K/10K)' },
+            ].map((tab) => {
+              const active = filterTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setFilterTab(tab.id as 'all' | 'individual' | 'dog')}
+                  className={`relative px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-colors whitespace-nowrap cursor-pointer ${
+                    active ? 'text-[#261247]' : 'text-[#6B5A85] hover:text-[#261247]'
+                  }`}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="ticketFilterPill"
+                      transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+                      className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FFE268] to-[#FFC928] shadow-xs"
+                    />
+                  )}
+                  <span className="relative z-10">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {onOpenComparisonModal && (
+            <button
+              type="button"
+              onClick={onOpenComparisonModal}
+              className="inline-flex items-center gap-2 rounded-full bg-white hover:bg-[#FAF7FF] text-[#261247] border border-[#7B3FC6]/30 px-4 py-2 text-xs sm:text-sm font-extrabold shadow-xs transition-transform hover:scale-[1.02] cursor-pointer"
+            >
+              <span>เปรียบเทียบระยะวิ่ง</span>
+              <ArrowRight className="w-4 h-4 text-[#7B3FC6]" />
+            </button>
+          )}
         </div>
       </motion.div>
 
-      {/* ---------- Two group panels ---------- */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
-        <GroupPanel
-          title="วิ่งบุคคลทั่วไป"
-          hint="สำหรับนักวิ่งทุกคน"
-          icon={<User className="w-6 h-6" />}
-          iconColor="#6D2FC4"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {individual.map((t, i) => (
-              <TicketCard key={t.id} t={t} index={i} selected={selectedRoute === t.id}
-                onSelect={() => onSelectRoute(t.id)} onRegister={() => onOpenRegister(t.id)} />
+      {/* ---------- 2. COMPACT LUMINOUS TICKET PASSES GRID (4-CARD ROW) ---------- */}
+      <AnimatePresence mode="wait">
+        {filterTab === 'all' ? (
+          <motion.div
+            key="all-4-cards"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.22 }}
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-9"
+          >
+            {ticketCategories.map((t, i) => (
+              <TicketCard
+                key={t.id}
+                t={t}
+                index={i}
+                selected={selectedRoute === t.id}
+                onSelect={() => onSelectRoute(t.id)}
+                onRegister={() => onOpenRegister(t.id)}
+              />
             ))}
-          </div>
-        </GroupPanel>
-
-        <GroupPanel
-          title="วิ่งคู่กับสัตว์เลี้ยง"
-          hint="วิ่งกับน้องหมา สร้างความสุขไปด้วยกัน"
-          icon={<PawIcon size={26} color="#fff" />}
-          iconColor="#2EAD62"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {dog.map((t, i) => (
-              <TicketCard key={t.id} t={t} index={i + 2} selected={selectedRoute === t.id}
-                onSelect={() => onSelectRoute(t.id)} onRegister={() => onOpenRegister(t.id)} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key={filterTab}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.22 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto mb-9"
+          >
+            {(filterTab === 'individual' ? individual : dog).map((t, i) => (
+              <TicketCard
+                key={t.id}
+                t={t}
+                index={i}
+                selected={selectedRoute === t.id}
+                onSelect={() => onSelectRoute(t.id)}
+                onRegister={() => onOpenRegister(t.id)}
+              />
             ))}
-          </div>
-        </GroupPanel>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* ---------- Price table + calculator ---------- */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-        <div className="rounded-[26px] overflow-hidden bg-white shadow-[0_14px_40px_-18px_rgba(75,45,120,.4)] border border-[#E9DEFC]">
-          <div className="px-6 py-4 text-white" style={{ background: 'linear-gradient(135deg,#7B3FC6,#5A25A8)' }}>
+      {/* ---------- 3. PRICE TABLE + INTERACTIVE LIVE PASS BUILDER ---------- */}
+      <div id="ticket-pricing" className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-7 scroll-mt-24">
+        {/* Left: Complete Price Breakdown Table (5 cols) */}
+        <div className="lg:col-span-5 rounded-[28px] overflow-hidden bg-white/95 backdrop-blur-md border border-[#7B3FC6]/20 shadow-[0_20px_45px_-16px_rgba(75,45,120,0.18)] flex flex-col">
+          <div
+            className="px-6 py-4 text-white"
+            style={{ background: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 55%, #C026D3 100%)' }}
+          >
             <div className="flex items-center gap-3">
-              <PawIcon size={26} color="#fff" />
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold leading-tight">ตารางราคาบัตรวิ่งทั้งหมด</h3>
-                <p className="text-xs text-white/80">เลือกระยะทางและจำนวนผู้เข้าร่วมที่ต้องการ</p>
-              </div>
-            </div>
-          </div>
-          <table className="w-full text-sm sm:text-[15px] my-auto">
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={r.label} className={`${i % 2 ? 'bg-[#FAF7FF]' : ''} ${i ? 'border-t border-[#EFE7FA]' : ''}`}>
-                  <td className="px-6 py-3 font-semibold text-[#2A1450]">{r.label}</td>
-                  <td className="px-6 py-3 text-right font-bold text-[#2A1450] whitespace-nowrap">{r.price}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="rounded-[26px] overflow-hidden bg-white shadow-[0_14px_40px_-18px_rgba(75,45,120,.4)] border border-[#E9DEFC] flex flex-col">
-          <div className="px-6 py-4 bg-[#F3EEFB]">
-            <div className="flex items-center gap-3">
-              <ShoppingCart className="w-6 h-6 text-[#6D2FC4]" />
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-[#2A1450] leading-tight">ตัวอย่างการคิดราคา</h3>
-                <p className="text-xs text-[#6B5A85]">เลือกรายการเพิ่มเติมตามจำนวนที่ต้องการ</p>
-              </div>
-            </div>
-          </div>
-          <ul className="px-4 sm:px-6 py-2 flex-1">
-            {calcRows.map((r) => (
-              <li key={r.d + r.field} className="flex items-center gap-3 py-2 border-b border-[#F1EAFB] last:border-0">
-                <span className="w-7 h-7 rounded-lg bg-[#F7F3FD] flex items-center justify-center shrink-0" style={{ color: r.color }}>
-                  <r.Icon {...(r.Icon === PawIcon ? { size: 16, color: r.color } : { className: 'w-4 h-4' })} />
-                </span>
-                <span className="flex-1 text-[13px] sm:text-sm font-semibold text-[#2A1450] leading-tight">{r.label}</span>
-                <span className="text-sm font-bold text-[#2A1450] w-16 text-right tabular-nums">
-                  {r.price.toLocaleString('th-TH')}.-
-                </span>
-                <Qty
-                  value={counts[r.d][r.field]}
-                  max={r.max}
-                  label={r.label}
-                  onChange={(n) => update(r.d, r.field, n)}
-                />
-              </li>
-            ))}
-          </ul>
-          <div className="px-4 sm:px-6 pb-5 pt-2">
-            <div className="flex items-baseline justify-between mb-3 px-1">
-              <span className="text-sm font-semibold text-[#6B5A85]">ยอดรวม</span>
-              <span key={calc.total} className="font-display text-3xl font-bold text-[#2A1450] animate-pop">
-                {calc.total.toLocaleString('th-TH')} <span className="text-base">บาท</span>
+              <span className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0">
+                <Ticket className="w-5 h-5 text-[#FFE28A]" />
               </span>
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold leading-tight">
+                  ตารางราคาบัตรวิ่งทั้งหมด
+                </h3>
+                <p className="text-xs text-white/85">
+                  ราคาพิเศษช่วงทดสอบระบบ รวมเสื้อวิ่ง เหรียญ และ E-BIB
+                </p>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                onOpenRegister(calc.active, { people: calc.c.people, dogs: calc.c.dogs })
-              }
-              className="w-full rounded-full py-3.5 px-5 flex items-center justify-center gap-2 text-white font-bold text-base transition-transform hover:scale-[1.02] active:scale-95"
-              style={{ background: 'linear-gradient(180deg,#8B4FD8,#6D2FC4)', boxShadow: '0 8px 18px -8px #6D2FC4' }}
-            >
-              <ShoppingCart className="w-5 h-5" />
-              สมัครวิ่งคู่น้องหมาเลย
-              <ArrowRight className="w-5 h-5 ml-1" />
-            </button>
+          </div>
+
+          <div className="divide-y divide-[#F3ECFF] flex-1 flex flex-col justify-between">
+            {rows.map((r, i) => (
+              <div
+                key={r.label}
+                className={`px-5 py-2.5 flex items-center justify-between gap-2 ${
+                  i % 2 ? 'bg-[#FAF8FF]' : 'bg-white'
+                } hover:bg-[#F3ECFF]/70 transition-colors`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#F3E8FF] text-[#6D28D9] shrink-0">
+                    {r.badge}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-[#261247] truncate">
+                    {r.label}
+                  </span>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-sm font-extrabold text-[#261247] tabular-nums">
+                    {r.price}
+                  </span>
+                  <span className="block text-[10px] font-semibold text-[#6B5A85]">
+                    {r.note}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Interactive Dog Run Pass Builder & Live Ticket Preview (7 cols) */}
+        <div className="lg:col-span-7 rounded-[28px] overflow-hidden bg-white/95 backdrop-blur-md border border-[#7B3FC6]/20 shadow-[0_20px_45px_-16px_rgba(75,45,120,0.18)] flex flex-col justify-between">
+          <div className="px-6 py-4 bg-gradient-to-r from-[#FFF7ED] via-[#FAF5FF] to-[#F0FDFA] border-b border-[#7B3FC6]/15 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFE268] to-[#F59E0B] flex items-center justify-center shrink-0 shadow-sm">
+                <ShoppingCart className="w-5 h-5 text-[#261247]" />
+              </span>
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-[#261247] leading-tight">
+                  จำลองแพ็กเกจบัตรวิ่ง Dog Run & คำนวณราคา
+                </h3>
+                <p className="text-xs font-semibold text-[#6B5A85]">
+                  ปรับจำนวนคนและน้องหมา เพื่อดูตัวอย่างบัตรกลุ่มของคุณแบบเรียลไทม์
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 items-center flex-1">
+            {/* Stepper Controls (7 of 12 cols) */}
+            <ul className="md:col-span-7 divide-y divide-[#F3ECFF]">
+              {calcRows.map((r) => {
+                const isSelectedDist = calc.active === r.d;
+                return (
+                  <li
+                    key={r.d + r.field}
+                    className={`flex items-center gap-2.5 py-2.5 px-2 rounded-xl transition-colors ${
+                      isSelectedDist ? 'bg-[#FAF8FF]' : 'opacity-75 hover:opacity-100'
+                    }`}
+                  >
+                    <span
+                      className="w-7 h-7 rounded-lg bg-white border border-[#E9D5FF] flex items-center justify-center shrink-0 shadow-2xs"
+                      style={{ color: r.color }}
+                    >
+                      <r.Icon
+                        {...(r.Icon === PawIcon
+                          ? { size: 15, color: r.color }
+                          : { className: 'w-4 h-4' })}
+                      />
+                    </span>
+                    <span className="flex-1 text-xs sm:text-[13px] font-bold text-[#261247] leading-tight">
+                      {r.label}
+                    </span>
+                    <span className="text-xs sm:text-sm font-extrabold text-[#261247] w-14 text-right tabular-nums">
+                      {r.price.toLocaleString('th-TH')}.-
+                    </span>
+                    <Qty
+                      value={counts[r.d][r.field]}
+                      max={r.max}
+                      label={r.label}
+                      onChange={(n) => update(r.d, r.field, n)}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Live Animated Mini Ticket Stub Preview with Labrador Mascot (5 of 12 cols) */}
+            <div className="md:col-span-5">
+              <motion.div
+                key={`${calc.active}-${calc.totalPeople}-${calc.totalDogs}`}
+                initial={{ scale: 0.96, opacity: 0.85 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+                className="rounded-3xl p-4 relative overflow-hidden"
+                style={{
+                  background: look[calc.active].grad,
+                  border: `2px solid ${look[calc.active].borderActive}`,
+                  boxShadow: look[calc.active].shadowIdle,
+                }}
+              >
+                <div className="flex items-center justify-between border-b border-dashed border-[#261247]/15 pb-2 mb-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <img
+                      src={LABRADOR_SVG_PATH}
+                      alt="Labrador"
+                      className="w-7 h-7 object-contain"
+                    />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#261247]">
+                      LIVE DOG PASS
+                    </span>
+                  </div>
+                  <span
+                    className="text-[11px] font-black px-2.5 py-0.5 rounded-full text-white"
+                    style={{ background: look[calc.active].headerGrad }}
+                  >
+                    {calc.active.toUpperCase()} DOG RUN
+                  </span>
+                </div>
+
+                {/* Animated Participant Icons */}
+                <div className="my-2.5">
+                  <div className="text-[11px] font-bold text-[#4B2D78] mb-1.5">
+                    ผู้เข้าร่วม ({calc.totalPeople} คน + {calc.totalDogs} น้องหมา):
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 min-h-[34px] p-2 rounded-2xl bg-white/85 border border-white shadow-2xs">
+                    {Array.from({ length: Math.min(calc.totalPeople, 6) }).map((_, idx) => (
+                      <motion.span
+                        key={`p-${idx}`}
+                        initial={{ scale: 0, rotate: -15 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        className="w-6 h-6 rounded-full bg-[#7C3AED] text-white flex items-center justify-center text-[11px] font-bold shadow-2xs"
+                        title="นักวิ่ง"
+                      >
+                        🏃
+                      </motion.span>
+                    ))}
+                    {calc.totalPeople > 6 && (
+                      <span className="text-[11px] font-extrabold text-[#7C3AED]">
+                        +{calc.totalPeople - 6}
+                      </span>
+                    )}
+                    <span className="text-xs font-black text-[#261247]/40 mx-0.5">+</span>
+                    {Array.from({ length: Math.min(calc.totalDogs, 6) }).map((_, idx) => (
+                      <motion.span
+                        key={`d-${idx}`}
+                        initial={{ scale: 0, rotate: 15 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        className="w-6 h-6 rounded-full bg-[#FF7A59] text-white flex items-center justify-center text-[11px] font-bold shadow-2xs"
+                        title="น้องหมา"
+                      >
+                        🐶
+                      </motion.span>
+                    ))}
+                    {calc.totalDogs > 6 && (
+                      <span className="text-[11px] font-extrabold text-[#EA580C]">
+                        +{calc.totalDogs - 6}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-dashed border-[#261247]/15 flex items-baseline justify-between">
+                  <span className="text-xs font-extrabold text-[#261247]">ยอดรวมสุทธิ</span>
+                  <div className="text-right">
+                    <span
+                      className="font-display text-2xl sm:text-3xl font-black tabular-nums"
+                      style={{ color: look[calc.active].accentDark }}
+                    >
+                      {calc.total.toLocaleString('th-TH')}
+                    </span>
+                    <span className="text-xs font-extrabold text-[#261247] ml-1">บาท</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenRegister(calc.active, {
+                      people: calc.c.people,
+                      dogs: calc.c.dogs,
+                    })
+                  }
+                  className="mt-3 w-full rounded-2xl py-2.5 px-4 flex items-center justify-center gap-1.5 text-white font-extrabold text-xs sm:text-sm hover:scale-[1.02] active:scale-95 transition-transform cursor-pointer"
+                  style={{
+                    background: look[calc.active].btnGrad,
+                    boxShadow: look[calc.active].btnShadow,
+                  }}
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>สมัครแพ็กเกจนี้เลย</span>
+                  <ArrowRight className="w-4 h-4 ml-auto" />
+                </button>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ---------- Info pills ---------- */}
+      {/* ---------- 4. TRUST & SUPPORT FOOTER STRIP ---------- */}
       <div className="flex flex-wrap justify-center gap-3">
         {[
           { Icon: Calendar, text: 'เปลี่ยนประเภท/ระยะทางได้ภายหลัง' },
-          { Icon: ShieldCheck, text: 'ชำระเงินปลอดภัย' },
-          { Icon: Headphones, text: 'สอบถามเพิ่มเติม' },
+          { Icon: ShieldCheck, text: 'สแกนจ่ายปุ๊บ รับ Digital BIB ทันที' },
+          { Icon: Headphones, text: 'ทีมสัตวแพทย์อาสาและพยาบาลดูแลตลอดเส้นทาง' },
         ].map(({ Icon, text }) => (
           <span
             key={text}
-            className="inline-flex items-center gap-2.5 bg-white rounded-full pl-2 pr-5 py-2 text-sm font-semibold text-[#2A1450] shadow-[0_8px_20px_-10px_rgba(75,45,120,.45)] border border-[#EFE7FA]"
+            className="inline-flex items-center gap-2.5 bg-white/95 backdrop-blur-md rounded-full pl-2.5 pr-5 py-2 text-xs sm:text-sm font-bold text-[#261247] shadow-[0_10px_25px_-10px_rgba(75,45,120,0.22)] border border-[#7B3FC6]/15"
           >
-            <span className="w-8 h-8 rounded-full bg-[#F3EEFB] text-[#6D2FC4] flex items-center justify-center">
+            <span className="w-7 h-7 rounded-full bg-[#F3E8FF] text-[#6D28D9] flex items-center justify-center">
               <Icon className="w-4 h-4" />
             </span>
             {text}

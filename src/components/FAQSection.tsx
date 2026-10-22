@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { faqData } from '../data/eventData';
-import { HelpCircle, ChevronDown, ChevronUp, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Sparkles } from 'lucide-react';
 
 export const FAQSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,7 +26,10 @@ export const FAQSection: React.FC = () => {
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        return item.question.toLowerCase().includes(q) || item.answer.toLowerCase().includes(q);
+        return (
+          item.question.toLowerCase().includes(q) ||
+          item.answer.toLowerCase().includes(q)
+        );
       }
       return true;
     });
@@ -37,31 +40,34 @@ export const FAQSection: React.FC = () => {
   };
 
   return (
-    <section id="faq" className="py-16 bg-white border-b border-[#ECEAF0]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs font-bold tracking-widest text-[#6F35B5] uppercase bg-[#F3EDF9] px-3.5 py-1 rounded-full">
-            Frequently Asked Questions
+    <section
+      id="faq"
+      className="py-12 sm:py-16 bg-gradient-to-b from-[#FAF7FF] via-white to-[#EFE6FC] border-b border-purple-100 scroll-mt-20"
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white border-2 border-[#2A1450] text-[#5B20A8] text-xs font-extrabold uppercase tracking-wider shadow-[0_3px_0_#2A1450]">
+            <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+            <span>FREQUENTLY ASKED QUESTIONS</span>
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-[#18151D] mt-2">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#2A1450] mt-3">
             คำถามที่พบบ่อย (FAQ)
           </h2>
-          <p className="text-sm sm:text-base text-[#6F6A76] mt-2">
-            รวบรวมข้อสงสัยเกี่ยวกับการแข่งขัน สุนัขร่วมวิ่ง ที่จอดรถ และของที่ระลึก
+          <p className="text-xs sm:text-sm text-[#6B5A85] font-semibold mt-1.5">
+            รวบรวมข้อสงสัยเกี่ยวกับการแข่งขัน การพาสุนัขร่วมวิ่ง ที่จอดรถ และของที่ระลึก
           </p>
         </div>
 
-        {/* Search & Category filter */}
-        <div className="space-y-3 mb-8">
+        {/* Search & Category Filter */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border-2 border-[#2A1450] shadow-[0_10px_24px_-12px_rgba(42,20,80,0.22),0_4px_0_#2A1450] mb-6 space-y-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#6F6A76]" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#6B5A85]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ค้นหาคำถาม เช่น สุนัข, ที่จอดรถ, เหรียญรางวัล, เสื้อ..."
-              className="w-full pl-11 pr-4 py-3 rounded-2xl border border-[#ECEAF0] bg-[#FAF9FC] text-sm text-[#18151D] focus:outline-none focus:ring-2 focus:ring-[#8C4DDB]"
+              className="w-full pl-11 pr-4 py-2.5 rounded-2xl border-2 border-purple-100 bg-[#FAF8FF] text-xs sm:text-sm font-semibold text-[#2A1450] focus:outline-none focus:border-[#5B20A8]"
             />
           </div>
 
@@ -69,11 +75,12 @@ export const FAQSection: React.FC = () => {
             {categories.map((cat) => (
               <button
                 key={cat.id}
+                type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-all cursor-pointer border ${
                   selectedCategory === cat.id
-                    ? 'bg-[#6F35B5] text-white shadow-sm'
-                    : 'bg-[#FAF9FC] text-[#6F6A76] hover:bg-[#ECEAF0]'
+                    ? 'bg-[#2A1450] text-[#FFC928] border-[#2A1450] shadow-xs'
+                    : 'bg-[#F4ECFF] text-[#4B2D78] border-purple-200 hover:bg-[#E6D6FC]'
                 }`}
               >
                 {cat.label}
@@ -89,22 +96,37 @@ export const FAQSection: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className="rounded-2xl border border-[#ECEAF0] bg-[#FAF9FC] overflow-hidden transition-all"
+                className={`rounded-2xl border-2 transition-all overflow-hidden ${
+                  isOpen
+                    ? 'border-[#2A1450] bg-white shadow-[0_10px_22px_-12px_rgba(42,20,80,0.25),0_4px_0_#2A1450]'
+                    : 'border-purple-200 bg-white/90 hover:border-[#5B20A8]'
+                }`}
               >
                 <button
+                  type="button"
                   onClick={() => toggleItem(item.id)}
-                  className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/80 transition-colors"
+                  className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[#FAF7FF] transition-colors"
                 >
-                  <span className="text-sm sm:text-base font-bold text-[#18151D]">
+                  <span className="text-sm sm:text-base font-extrabold text-[#2A1450]">
                     {item.question}
                   </span>
-                  <div className="w-7 h-7 rounded-xl bg-white border border-[#ECEAF0] flex items-center justify-center flex-shrink-0 text-[#6F35B5]">
-                    {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  <div
+                    className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      isOpen
+                        ? 'bg-[#FFC928] text-[#2A1450] border-[#2A1450]'
+                        : 'bg-[#F4ECFF] text-[#5B20A8] border-purple-200'
+                    }`}
+                  >
+                    {isOpen ? (
+                      <ChevronUp className="w-4 h-4 stroke-[2.5]" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 stroke-[2.5]" />
+                    )}
                   </div>
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#6F6A76] leading-relaxed border-t border-[#ECEAF0]/60 bg-white">
+                  <div className="px-5 pb-4 pt-2 text-xs sm:text-sm text-[#4B2D78] font-medium leading-relaxed border-t border-dashed border-purple-200 bg-[#FAF8FF]">
                     {item.answer}
                   </div>
                 )}
@@ -112,15 +134,6 @@ export const FAQSection: React.FC = () => {
             );
           })}
         </div>
-
-        {/* Additional help query */}
-        <div className="mt-8 text-center text-xs text-[#6F6A76]">
-          มีคำถามเพิ่มเติมที่ไม่มีในนี้?{' '}
-          <a href="#contact" className="text-[#6F35B5] font-bold hover:underline">
-            ติดต่อทีมงานผู้จัดได้โดยตรง
-          </a>
-        </div>
-
       </div>
     </section>
   );
