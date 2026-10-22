@@ -8,7 +8,7 @@ interface CountdownTimerProps {
 }
 
 export const HeroCountdownTimer: React.FC<CountdownTimerProps> = ({
-  targetDate = '2027-02-15T06:00:00+07:00',
+  targetDate = '2027-02-15T16:30:00+07:00',
   className = '',
 }) => {
   const [timeLeft, setTimeLeft] = useState({

@@ -25,7 +25,7 @@ interface CommunityTeam {
   badge: string;
 }
 
-export const LeaderboardSection: React.FC = () => {
+const LeaderboardResults: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'individual' | 'community'>('individual');
   const [distanceFilter, setDistanceFilter] = useState<'all' | '10km' | '5km' | '3km' | '1km'>('all');
   const [cheerCounts, setCheerCounts] = useState<{ [key: string]: number }>({});
@@ -500,6 +500,40 @@ export const LeaderboardSection: React.FC = () => {
             })}
           </div>
         )}
+      </div>
+    </section>
+  );
+};
+
+/**
+ * Set to true after race day, once real results are loaded into LeaderboardResults.
+ * Until then the page shows a "results announced after the race" notice instead of sample data.
+ */
+const RESULTS_PUBLISHED = false;
+
+export const LeaderboardSection: React.FC = () => {
+  if (RESULTS_PUBLISHED) return <LeaderboardResults />;
+  return (
+    <section
+      id="leaderboard"
+      aria-labelledby="leaderboard-heading"
+      className="py-12 sm:py-16 bg-gradient-to-b from-[#E0F2FE]/60 via-[#FAF7FF] to-[#FFF4D2]/50 relative overflow-hidden scroll-mt-20"
+    >
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+        <h2 id="leaderboard-heading" className="text-3xl sm:text-4xl font-extrabold text-[#2A1450] tracking-tight">
+          ผลการแข่งขัน
+        </h2>
+        <div className="mt-6 rounded-[28px] bg-white border-[3px] border-[#2A1450] shadow-[0_8px_0_#2A1450] px-6 py-8 sm:py-10 flex flex-col items-center gap-3">
+          <span className="w-14 h-14 rounded-2xl bg-[#FFF4D2] border-2 border-[#2A1450] flex items-center justify-center">
+            <Trophy className="w-7 h-7 text-[#D97706]" />
+          </span>
+          <p className="text-base sm:text-lg font-extrabold text-[#2A1450]">
+            ประกาศผลหลังจบการแข่งขัน 15 ก.พ. 2570
+          </p>
+          <p className="text-sm font-semibold text-[#6B5A85] max-w-lg text-balance">
+            เวลาและอันดับของทุกระยะจะแสดงที่หน้านี้ ค้นหาผลของคุณได้ด้วยเลข BIB
+          </p>
+        </div>
       </div>
     </section>
   );

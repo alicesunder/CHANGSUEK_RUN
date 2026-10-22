@@ -39,15 +39,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const navLinks = [
-    { label: 'หน้าแรก', href: '#hero' },
-    { label: 'รายละเอียดงาน', href: '#experience' },
-    { label: 'ระยะวิ่ง', href: '#distances' },
-    { label: 'เส้นทาง & GPS', href: '#schedule-and-map' },
-    { label: 'ตารางแข่งขัน', href: '#schedule-and-map' },
-    { label: 'อันดับ', href: '#leaderboard' },
+    { label: 'เกี่ยวกับงาน', href: '#objective' },
+    { label: 'ระยะ & ราคา', href: '#distances' },
+    { label: 'กำหนดการ & เส้นทาง', href: '#schedule-and-map' },
     { label: 'ที่พัก', href: '#hotels' },
     { label: 'ผู้สนับสนุน', href: '#sponsors' },
-    { label: 'ข่าวสาร', href: '#weather-forecast' },
     { label: 'FAQ', href: '#faq' },
   ];
 

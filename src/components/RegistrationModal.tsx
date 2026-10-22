@@ -42,26 +42,20 @@ import { RouteId } from '../types';
 import { DogCharacter, ElephantCharacter } from './brand/BrandCharacters';
 import { PawIcon } from './brand/DogDecor';
 import { LABRADOR_SVG_PATH, LabradorMascot } from './brand/LabradorMascot';
-import { TICKET_CARD_IMAGES } from './brand/TicketCardArtwork';
 import { playVictoryCelebrationSound } from '../utils/ticketSoundFx';
 import { TicketOrder, saveRunnerProfile } from '../utils/runnerStorage';
 import {
   PendingOrderRef,
   PublicConfig,
   ServerOrder,
-  SlipSubmitResult,
   createOrder,
   fetchOrder,
+  fetchQrObjectUrl,
+  renewQr,
   getPublicConfig,
   loadPendingOrderRef,
   savePendingOrderRef,
-  submitSlip,
 } from '../utils/api';
-import {
-  formatPromptPayDisplay,
-  generatePromptPayPayload,
-} from '../utils/promptPay';
-import { decodeSlipMiniQrFromImage, processUploadedSlipImage } from '../utils/slipVerifier';
 import {
   ticketById,
   isDogCategory,
@@ -130,6 +124,14 @@ const ROUTE_THEME: Record<
     borderActive: '#FF5A5F',
     startTime: '17.30 น.',
   },
+};
+
+// Square icons cropped from the distance illustrations so each ticket shows its own runner(s)
+const TICKET_ICONS: Record<RouteId, { src: string; alt: string }> = {
+  '10km': { src: '/images/distances/icon-10k.webp', alt: 'นักวิ่ง 10 กม. บนถนนเลียบชายฝั่ง' },
+  '5km': { src: '/images/distances/icon-5k.webp', alt: 'นักวิ่ง 5 กม. คู่หนึ่งวิ่งริมหาด' },
+  '3km': { src: '/images/distances/icon-3k.webp', alt: 'นักวิ่งกับน้องหมาระยะ 3 กม. ริมหาด' },
+  '1km': { src: '/images/distances/icon-1k.webp', alt: 'น้องหมาวิ่งระยะ 1 กม.' },
 };
 
 const SHIRT_SIZES = [
@@ -222,6 +224,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const promptPayConfig = {
     promptPayId: publicCfg?.promptPayId || '',
     accountName: publicCfg?.accountName || '',
+    bankLabel: publicCfg?.bankLabel || '',
+    bankAccountNo: publicCfg?.bankAccountNo || '',
   };
   const [pendingRef, setPendingRef] = useState<PendingOrderRef | null>(null);
   const [serverOrder, setServerOrder] = useState<ServerOrder | null>(null);
@@ -235,12 +239,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [nowMs, setNowMs] = useState<number>(Date.now());
   const [qrShownUntil, setQrShownUntil] = useState<number>(0);
 
-  // Slip upload state
-  const [slipImageDataUrl, setSlipImageDataUrl] = useState<string>('');
-  const [isScanningSlip, setIsScanningSlip] = useState<boolean>(false);
-  const [slipResult, setSlipResult] = useState<SlipSubmitResult | null>(null);
-  const [verificationError, setVerificationError] = useState<string | null>(null);
-  const [showSlipLightbox, setShowSlipLightbox] = useState<boolean>(false);
   const [celebrationKey, setCelebrationKey] = useState<number>(1);
 
   // Step 4 Email & Print States
@@ -314,9 +312,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setServerOrder(null);
     setPendingRef(null);
     setFormError(null);
-    setSlipImageDataUrl('');
-    setSlipResult(null);
-    setVerificationError(null);
     setCreatedOrder(null);
     setEmailLog(null);
     setTicketCheckInQrUrl('');
@@ -352,11 +347,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !printModalOpen && !showSlipLightbox) onClose();
+      if (e.key === 'Escape' && !printModalOpen) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose, printModalOpen, showSlipLightbox]);
+  }, [isOpen, onClose, printModalOpen]);
 
   // 1-second clock while on the payment step
   useEffect(() => {
@@ -365,23 +360,43 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     return () => window.clearInterval(timer);
   }, [isOpen, step]);
 
-  // PromptPay QR: Omise QR when the server created a charge, otherwise EMVCo QR for the server amount
+  // Omise QR, loaded through our server so it can be saved/downloaded on a phone
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [isRenewingQr, setIsRenewingQr] = useState(false);
   useEffect(() => {
-    if (!isOpen || step !== 3 || !serverOrder || !promptPayConfig.promptPayId) return;
-    if (serverOrder.omiseQrImageUrl) {
-      setQrDataUrl(serverOrder.omiseQrImageUrl);
-      return;
+    if (!isOpen || step !== 3 || !pendingRef || !serverOrder?.omiseChargeId) return;
+    let objectUrl = '';
+    let cancelled = false;
+    setQrDataUrl('');
+    setQrError(null);
+    fetchQrObjectUrl(pendingRef)
+      .then((u) => {
+        objectUrl = u;
+        if (!cancelled) setQrDataUrl(u);
+      })
+      .catch(() => !cancelled && setQrError('โหลด QR ไม่สำเร็จ กรุณากด "สร้าง QR ใหม่"'));
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [isOpen, step, pendingRef?.orderId, serverOrder?.omiseChargeId]);
+
+  const handleRenewQr = async () => {
+    if (!pendingRef || isRenewingQr) return;
+    setIsRenewingQr(true);
+    setQrError(null);
+    try {
+      const o = await renewQr(pendingRef);
+      setServerOrder(o);
+      setQrShownUntil(0);
+      setNowMs(Date.now());
+      if (o.paymentStatus === 'PAID') finalizePaidOrder(o);
+    } catch (err) {
+      setQrError(err instanceof Error ? err.message : 'สร้าง QR ใหม่ไม่สำเร็จ');
+    } finally {
+      setIsRenewingQr(false);
     }
-    const payload = generatePromptPayPayload(promptPayConfig.promptPayId, serverOrder.totalPrice);
-    QRCode.toDataURL(payload, {
-      width: 340,
-      margin: 1,
-      color: { dark: '#113566', light: '#FFFFFF' },
-      errorCorrectionLevel: 'M',
-    })
-      .then((url) => setQrDataUrl(url))
-      .catch(() => setQrDataUrl(''));
-  }, [isOpen, step, serverOrder?.orderId, serverOrder?.totalPrice, serverOrder?.omiseQrImageUrl, promptPayConfig.promptPayId]);
+  };
 
   // Poll the server for payment confirmation (Omise or admin approval)
   useEffect(() => {
@@ -442,10 +457,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setPendingRef(ref);
       setServerOrder(res.order);
       setPublicCfg(res.config);
-      setSlipResult(null);
-      setVerificationError(null);
-      setSlipImageDataUrl('');
-      setNowMs(Date.now());
+            setNowMs(Date.now());
       setStep(3);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'สร้างคำสั่งซื้อไม่สำเร็จ กรุณาลองใหม่');
@@ -458,61 +470,44 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     savePendingOrderRef(null);
     setPendingRef(null);
     setServerOrder(null);
-    setSlipResult(null);
-    setVerificationError(null);
-    setSlipImageDataUrl('');
     setStep(1);
   };
 
-  // Runner uploads a bank slip -> server verifies (bank API) or queues it for admin review
-  const handleSlipFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file || !pendingRef) return;
-
-    setVerificationError(null);
-    setSlipResult(null);
-    setIsScanningSlip(true);
-    try {
-      const processed = await processUploadedSlipImage(file);
-      setSlipImageDataUrl(processed.dataUrl);
-      const qr = await decodeSlipMiniQrFromImage(processed.dataUrl);
-      if (qr?.isPromptPayPaymentQr) {
-        setVerificationError('รูปนี้คือ QR สำหรับสแกนจ่าย ไม่ใช่สลิป กรุณาแนบรูปสลิปหลังโอนเงินสำเร็จจากแอปธนาคาร');
-        return;
-      }
-      const result = await submitSlip(pendingRef, processed.dataUrl, qr?.rawPayload);
-      setSlipResult(result);
-      setServerOrder(result.order);
-      if (result.order.paymentStatus === 'PAID') {
-        await finalizePaidOrder(result.order);
-      } else if (result.reasons.length > 0) {
-        setVerificationError(`${result.message}: ${result.reasons.join(' · ')}`);
-      }
-    } catch (err) {
-      setVerificationError(
-        err instanceof Error ? err.message : 'ไม่สามารถส่งสลิปได้ กรุณาลองใหม่อีกครั้ง'
-      );
-    } finally {
-      setIsScanningSlip(false);
-    }
-  };
-
-
   const handleCopyPromptPayId = () => {
-    navigator.clipboard.writeText(promptPayConfig.promptPayId.replace(/[^0-9]/g, ''));
+    navigator.clipboard.writeText(serverOrder?.orderId || '');
     setCopiedPromptPay(true);
     setTimeout(() => setCopiedPromptPay(false), 2200);
   };
 
+  // Saves the QR as a real PNG (Omise serves SVG, which phone galleries and bank apps can't open)
   const handleDownloadQrImage = () => {
     if (!qrDataUrl) return;
-    const link = document.createElement('a');
-    link.href = qrDataUrl;
-    link.download = `PromptPay_CHANGSUEK_RUN_${selectedRoute.toUpperCase()}_${payAmount}THB.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const img = new Image();
+    img.onload = () => {
+      const size = 720;
+      const pad = 40;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, size, size);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, pad, pad, size - pad * 2, size - pad * 2);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `CHANGSUEK_RUN_${serverOrder?.orderId || selectedRoute}_${payAmount}THB.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }, 'image/png');
+    };
+    img.src = qrDataUrl;
   };
 
   // Format MM:SS countdown
@@ -530,7 +525,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const steps = [
     { num: 1, title: 'เลือกระยะวิ่ง', sub: 'Package & Add-on' },
     { num: 2, title: 'ข้อมูลนักวิ่ง', sub: 'Runner & Shirt' },
-    { num: 3, title: 'สแกนจ่าย & ตรวจสลิป', sub: 'Timer & Verify' },
+    { num: 3, title: 'สแกนจ่าย', sub: 'PromptPay QR' },
     { num: 4, title: 'รับเลข BIB', sub: 'Auto E-BIB' },
   ];
 
@@ -538,7 +533,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     const t = ticketById(id);
     const rTheme = ROUTE_THEME[id];
     const on = selectedRoute === id;
-    const imgMeta = TICKET_CARD_IMAGES[id];
     const routeNextBib = publicCfg?.nextBib?.[id] ?? '—';
 
     return (
@@ -559,21 +553,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       >
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2.5">
-            {t.category === 'dog' ? (
-              <div className="w-11 h-11 rounded-2xl bg-white border border-amber-200 shadow-xs flex items-center justify-center shrink-0 overflow-hidden">
-                <img
-                  src={LABRADOR_SVG_PATH}
-                  alt="Labrador Dog Run"
-                  className="w-10 h-10 object-contain translate-y-0.5"
-                />
-              </div>
-            ) : (
-              <img
-                src={imgMeta.src}
-                alt={imgMeta.alt}
-                className="w-11 h-11 rounded-2xl object-cover border border-purple-200 shadow-xs shrink-0"
-              />
-            )}
+            <img
+              src={TICKET_ICONS[id].src}
+              alt={TICKET_ICONS[id].alt}
+              width={56}
+              height={56}
+              loading="lazy"
+              style={{ borderColor: on ? rTheme.borderActive : 'rgba(123, 63, 198, 0.18)' }}
+              className="w-14 h-14 rounded-2xl object-cover border-2 shadow-xs shrink-0 bg-white"
+            />
             <div>
               <span
                 style={{
@@ -647,7 +635,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   <span>CHANGSUEK RUN 2027 · SMART E-TICKET & AUTO-BIB</span>
                 </div>
                 <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white leading-tight">
-                  สมัครวิ่ง & รับบัตรวิ่ง E-BIB อัตโนมัติทันที
+                  สมัครวิ่ง & รับบัตรวิ่ง E-BIB
                 </h2>
               </div>
             </div>
@@ -1153,7 +1141,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         ระบบคุ้มครองข้อมูลส่วนบุคคล (PDPA Shield & Encrypted Storage)
                       </div>
                       <div className="text-[11px] font-semibold text-emerald-800">
-                        เบอร์โทรศัพท์ อีเมล ข้อมูลติดต่อฉุกเฉิน และสลิปโอนเงินถูกเข้ารหัส (AES-XOR + Integrity Signature) และปิดบังอัตโนมัติบนป้าย E-BIB เพื่อป้องกันข้อมูลรั่วไหล (ไม่ต้องใช้เลขบัตรประชาชน)
+                        ข้อมูลของคุณเก็บบนเซิร์ฟเวอร์ของผู้จัดงานและใช้เพื่อการจัดงานเท่านั้น เบอร์โทรจะถูกปิดบางส่วนบนป้าย BIB
                       </div>
                     </div>
                   </div>
@@ -1161,6 +1149,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     🔒 END-TO-END PROTECTED
                   </span>
                 </div>
+
+                {publicCfg && !publicCfg.paymentReady && (
+                  <div role="alert" className="relative z-10 p-3 rounded-2xl bg-amber-50 border-2 border-amber-500 text-amber-900 text-xs font-extrabold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>ยังไม่เปิดรับชำระเงินออนไลน์ กรุณาติดตามประกาศจากผู้จัดงาน</span>
+                  </div>
+                )}
 
                 {formError && (
                   <div role="alert" className="relative z-10 p-3 rounded-2xl bg-rose-50 border-2 border-rose-500 text-rose-800 text-xs font-extrabold flex items-center gap-2">
@@ -1182,7 +1177,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
                   <button
                     type="submit"
-                    disabled={isCreatingOrder}
+                    disabled={isCreatingOrder || (publicCfg !== null && !publicCfg.paymentReady)}
                     className="w-full sm:w-auto disabled:opacity-60 disabled:cursor-wait px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#FFDF5A] via-[#FFC928] to-[#FFAE19] hover:brightness-105 text-[#1E0F38] font-black text-base border border-amber-300 shadow-[0_10px_25px_-6px_rgba(245,158,11,0.5)] active:translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <QrCode className="w-5 h-5" />
@@ -1227,8 +1222,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       </span>
                       <p className="text-xs sm:text-sm font-extrabold text-white mt-0.5">
                         {isTimerExpired
-                          ? 'หมดเวลาแสดง QR แล้ว — ถ้าโอนไปแล้ว ยังแนบสลิปได้ตามปกติ'
-                          : 'กรุณาโอนเงินภายในเวลาที่กำหนด แล้วแนบสลิปเพื่อยืนยัน'}
+                          ? 'QR หมดอายุ — กดสร้าง QR ใหม่เพื่อชำระเงิน'
+                          : 'สแกนจ่ายภายในเวลาที่กำหนด ระบบจะยืนยันให้อัตโนมัติ ไม่ต้องแนบสลิป'}
                       </p>
                     </div>
                   </div>
@@ -1285,23 +1280,30 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                           />
                         ) : (
                           <div className="w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center text-xs font-bold text-slate-400">
-                            กำลังสร้าง QR Code...
+                            {qrError ? (
+                              <button type="button" onClick={handleRenewQr} className="text-rose-700 underline cursor-pointer px-3">
+                                {qrError}
+                              </button>
+                            ) : (
+                              'กำลังโหลด QR Code...'
+                            )}
                           </div>
                         )}
                         {isTimerExpired && (
                           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-slate-950/80 rounded-2xl text-white">
                             <AlertTriangle className="w-10 h-10 text-amber-400 mb-2" />
-                            <div className="text-sm font-black">หมดเวลาแสดง QR</div>
+                            <div className="text-sm font-black">QR หมดอายุแล้ว</div>
                             <p className="text-[11px] text-white/80 mt-0.5 mb-3">
-                              ยังไม่ได้โอน? กดเพื่อแสดง QR อีกครั้ง
+                              ยังไม่ได้โอน? กดเพื่อรับ QR ใบใหม่ ยอดเท่าเดิม
                             </p>
                             <button
                               type="button"
-                              onClick={() => setQrShownUntil(Date.now() + totalTimeoutSec * 1000)}
-                              className="px-4 py-2 rounded-xl bg-[#FFC928] text-[#180B30] text-xs font-black flex items-center gap-1.5 cursor-pointer"
+                              onClick={handleRenewQr}
+                              disabled={isRenewingQr}
+                              className="px-4 py-2 rounded-xl bg-[#FFC928] text-[#180B30] text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
-                              <span>แสดง QR อีกครั้ง</span>
+                              <span>{isRenewingQr ? 'กำลังสร้าง...' : 'สร้าง QR ใหม่'}</span>
                             </button>
                           </div>
                         )}
@@ -1313,32 +1315,20 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         </div>
                       </div>
 
-                      {!serverOrder.omiseQrImageUrl && (
-                        <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3 text-left space-y-1.5">
-                          <div className="flex items-center justify-between text-xs gap-2">
-                            <span className="font-bold text-slate-500 shrink-0">บัญชีโครงการ:</span>
-                            <span className="font-extrabold text-[#113566] text-right">
-                              {promptPayConfig.accountName}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-slate-500">เลข PromptPay:</span>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono font-black text-sm text-[#2A1450] tabular-nums">
-                                {formatPromptPayDisplay(promptPayConfig.promptPayId)}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={handleCopyPromptPayId}
-                                className="px-2 py-0.5 rounded-lg bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] text-[10px] font-extrabold flex items-center gap-1 cursor-pointer"
-                              >
-                                <Copy className="w-3 h-3" />
-                                <span>{copiedPromptPay ? 'คัดลอกแล้ว' : 'คัดลอก'}</span>
-                              </button>
-                            </div>
-                          </div>
+                      <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3 text-left text-xs flex items-center justify-between gap-2">
+                        <span className="font-bold text-slate-500">เลขคำสั่งซื้อ</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-black text-sm text-[#2A1450]">{serverOrder.orderId}</span>
+                          <button
+                            type="button"
+                            onClick={handleCopyPromptPayId}
+                            className="px-2 py-0.5 rounded-lg bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] text-[10px] font-extrabold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>{copiedPromptPay ? 'คัดลอกแล้ว' : 'คัดลอก'}</span>
+                          </button>
                         </div>
-                      )}
+                      </div>
 
                       <button
                         type="button"
@@ -1365,116 +1355,40 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                           ยืนยันการชำระเงิน
                         </span>
                         <h3 className="text-base sm:text-lg font-black text-[#2A1450]">
-                          {serverOrder.omiseQrImageUrl
-                            ? 'สแกนจ่ายแล้วระบบจะยืนยันให้อัตโนมัติ'
-                            : 'โอนเงินแล้วแนบสลิปเพื่อรับเลข BIB'}
+                          สแกนจ่ายแล้วระบบจะยืนยันให้อัตโนมัติ
                         </h3>
                       </div>
                     </div>
 
-                    {/* Current status */}
-                    {serverOrder.verificationStatus === 'PENDING_REVIEW' ? (
-                      <div role="status" className="rounded-2xl bg-amber-50 border-2 border-amber-400 p-4 text-sm text-amber-950 space-y-1">
-                        <div className="font-black flex items-center gap-2">
-                          <Clock className="w-4 h-4" /> ได้รับสลิปแล้ว รอเจ้าหน้าที่ตรวจสอบ
-                        </div>
-                        <p className="text-xs font-semibold">
-                          เมื่ออนุมัติแล้ว หน้านี้จะแสดงเลข BIB ให้อัตโนมัติ ปิดหน้าต่างได้ — เปิดหน้าสมัครอีกครั้งจากเครื่องนี้เพื่อดูสถานะ
-                          (เลขคำสั่งซื้อ <strong className="font-mono">{serverOrder.orderId}</strong>)
-                        </p>
-                      </div>
-                    ) : serverOrder.verificationStatus === 'REJECTED' ? (
+                    {serverOrder.verificationStatus === 'REJECTED' ? (
                       <div role="alert" className="rounded-2xl bg-rose-50 border-2 border-rose-500 p-4 text-sm text-rose-900 space-y-1">
                         <div className="font-black flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4" /> สลิปไม่ผ่านการตรวจสอบจากเจ้าหน้าที่
+                          <AlertTriangle className="w-4 h-4" /> คำสั่งซื้อนี้ถูกยกเลิกโดยเจ้าหน้าที่
                         </div>
                         <p className="text-xs font-semibold">
-                          กรุณาแนบสลิปที่ถูกต้องอีกครั้ง หรือติดต่อผู้จัดงานพร้อมเลขคำสั่งซื้อ{' '}
-                          <strong className="font-mono">{serverOrder.orderId}</strong>
+                          กรุณาติดต่อผู้จัดงานพร้อมเลขคำสั่งซื้อ <strong className="font-mono">{serverOrder.orderId}</strong>
                         </p>
                       </div>
-                    ) : serverOrder.omiseQrImageUrl ? (
-                      <div role="status" className="rounded-2xl bg-[#180B30] text-white p-4 text-sm flex items-center gap-3">
-                        <span className="relative flex h-3 w-3 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
-                        </span>
-                        <span className="font-bold">
-                          กำลังรอการยืนยันจากระบบชำระเงิน (ยอด {formatBaht(payAmount)} บาท) — ไม่ต้องแนบสลิป
-                        </span>
-                      </div>
                     ) : (
-                      <div className="rounded-2xl bg-[#FAF7FF] border border-[#2A1450]/15 p-3 text-xs text-[#4B2D78] font-semibold space-y-1">
-                        <div>1. สแกน QR และโอนยอด <strong className="text-emerald-700">{payAmount.toFixed(2)} บาท</strong> เข้าบัญชี <strong>{promptPayConfig.accountName}</strong></div>
-                        <div>2. แนบรูปสลิปจากแอปธนาคาร (ต้องเห็น QR เล็กบนสลิปชัดเจน)</div>
-                        <div>
-                          3.{' '}
-                          {publicCfg?.autoSlipVerification
-                            ? 'ระบบตรวจสอบกับธนาคารและออกเลข BIB ให้ทันที'
-                            : 'เจ้าหน้าที่ตรวจสอบสลิปแล้วออกเลข BIB ให้ (หน้านี้จะอัปเดตเอง)'}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Slip upload */}
-                    {!serverOrder.omiseQrImageUrl && (
                       <>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={handleSlipFileUpload}
-                          className="hidden"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => !isScanningSlip && fileInputRef.current?.click()}
-                          disabled={isScanningSlip}
-                          className={`w-full border-2 border-dashed ${
-                            isScanningSlip
-                              ? 'border-amber-500 bg-amber-50/50 cursor-wait'
-                              : 'border-[#6D28D9]/40 hover:border-[#6D28D9] bg-white cursor-pointer'
-                          } rounded-2xl p-3.5 text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-3`}
-                        >
-                          <div className="w-10 h-10 rounded-xl bg-[#F3E8FF] text-[#6D28D9] flex items-center justify-center shrink-0">
-                            {isScanningSlip ? <ScanLine className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-                          </div>
-                          <div className="text-left">
-                            <div className="text-xs font-extrabold text-[#2A1450]">
-                              {isScanningSlip
-                                ? 'กำลังส่งสลิปให้ระบบตรวจสอบ...'
-                                : serverOrder.verificationStatus === 'PENDING_REVIEW'
-                                ? 'แนบสลิปใหม่แทนใบเดิม (.JPG, .PNG)'
-                                : 'คลิกเพื่ออัปโหลดรูปสลิปโอนเงิน (.JPG, .PNG)'}
-                            </div>
-                            <div className="text-[11px] font-semibold text-[#6B5A85]">
-                              ยอดโอนต้องตรงกับ <strong className="text-emerald-700">{payAmount.toFixed(2)} บาท</strong> · ห้ามใช้สลิปซ้ำ
-                            </div>
-                          </div>
-                        </button>
-
-                        {slipImageDataUrl && (
-                          <button
-                            type="button"
-                            onClick={() => setShowSlipLightbox(true)}
-                            className="flex items-center gap-2 text-[11px] font-extrabold text-[#6D28D9] hover:underline cursor-pointer"
-                          >
-                            <img src={slipImageDataUrl} alt="สลิปที่แนบ" className="w-10 h-14 object-cover rounded border" />
-                            <span>ดูรูปสลิปที่แนบ</span>
-                          </button>
-                        )}
+                        <div role="status" className="rounded-2xl bg-[#180B30] text-white p-4 text-sm flex items-center gap-3">
+                          <span className="relative flex h-3 w-3 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+                          </span>
+                          <span className="font-bold">
+                            รอการชำระเงิน {formatBaht(payAmount)} บาท — ระบบจะยืนยันให้อัตโนมัติ
+                          </span>
+                        </div>
+                        <ol className="rounded-2xl bg-[#FAF7FF] border border-[#2A1450]/15 p-3.5 text-xs text-[#4B2D78] font-semibold space-y-1.5 list-decimal list-inside">
+                          <li>เปิดแอปธนาคารแล้วสแกน QR (ถ้าใช้มือถือเครื่องเดียวกัน กด "ดาวน์โหลดรูป QR" แล้วสแกนจากรูปในแอปธนาคาร)</li>
+                          <li>ตรวจยอด <strong className="text-emerald-700">{payAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท</strong> แล้วยืนยันการโอน</li>
+                          <li>กลับมาที่หน้านี้ เลข BIB จะขึ้นเองภายในไม่กี่วินาที — ไม่ต้องแนบสลิป</li>
+                        </ol>
+                        <p className="text-[11px] font-semibold text-[#6B5A85]">
+                          ปิดหน้านี้ได้ เปิดหน้าสมัครอีกครั้งจากเครื่องนี้เพื่อดูสถานะ
+                        </p>
                       </>
-                    )}
-
-                    {slipResult && slipResult.reasons.length === 0 && slipResult.orderStatus === 'PENDING_REVIEW' && (
-                      <p className="text-xs font-bold text-emerald-700">✓ {slipResult.message}</p>
-                    )}
-
-                    {verificationError && (
-                      <div role="alert" className="p-3 rounded-2xl bg-rose-50 border-2 border-rose-500 text-rose-800 text-xs font-extrabold flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                        <span>{verificationError}</span>
-                      </div>
                     )}
 
                     <div className="flex items-center justify-between pt-1">
@@ -1658,7 +1572,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         #{createdOrder.bibNumber}
                       </span>{' '}
                       เรียบร้อยแล้ว · รหัสคำสั่งซื้อ{' '}
-                      <span className="font-mono text-white">{createdOrder.orderId}</span> · อ้างอิงสลิป{' '}
+                      <span className="font-mono text-white">{createdOrder.orderId}</span> · อ้างอิงการชำระเงิน{' '}
                       <span className="font-mono text-emerald-300">{createdOrder.paymentRef}</span>
                     </p>
                   </div>
@@ -1985,35 +1899,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         </div>
 
         {/* Lightbox for inspecting uploaded slip in Step 3 */}
-        {showSlipLightbox && slipImageDataUrl && (
-          <div
-            onClick={() => setShowSlipLightbox(false)}
-            className="fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-4"
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl border-2 border-[#2A1450] p-4 max-w-md w-full space-y-3"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-[#2A1450]">
-                  รูปสลิปที่แนบ ({serverOrder?.orderId || 'PromptPay e-Slip'})
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowSlipLightbox(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <img
-                src={slipImageDataUrl}
-                alt="Bank Slip Full Preview"
-                className="w-full max-h-[70vh] object-contain rounded-2xl border border-slate-200 mx-auto"
-              />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ const getWeatherDescription = (
   }
   if (code >= 1 && code <= 3) {
     return {
-      label: 'มีเมฆบางส่วน แดดอ่อนยามเช้า',
+      label: 'มีเมฆบางส่วน แดดอ่อนยามเย็น',
       icon: <CloudSun className="w-7 h-7 text-amber-500" />,
       mood: 'ทัศนียภาพดีเยี่ยม บังแดดให้อุณหภูมิสบาย',
     };
@@ -57,14 +57,14 @@ const getWeatherDescription = (
   return {
     label: 'อากาศชายหาดสบาย ลมทะเลพัดโชย',
     icon: <CloudSun className="w-7 h-7 text-[#5B20A8]" />,
-    mood: 'สภาพอากาศเปิด ลมทะเลพัดเย็นตลอดเช้า',
+    mood: 'สภาพอากาศเปิด ลมทะเลพัดเย็นตลอดช่วงเย็น',
   };
 };
 
 export const EventWeatherForecast: React.FC = () => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedSlot, setSelectedSlot] = useState<number>(1); // default 06:00 start
+  const [selectedSlot, setSelectedSlot] = useState<number>(2); // default 17:00 (race starts 16:30–17:30)
 
   const fetchWeather = async () => {
     setLoading(true);
@@ -73,15 +73,15 @@ export const EventWeatherForecast: React.FC = () => {
       const res = await fetch(url);
       const data = await res.json();
 
-      const times = ['05:00', '06:00', '07:00', '08:00', '09:00', '10:00'];
-      const morningTemps = [24.5, 25.0, 26.2, 27.8, 29.1, 30.2];
-      const morningHumidity = [82, 80, 75, 70, 65, 60];
-      const morningWind = [9, 11, 14, 16, 18, 17];
-      const morningCodes = [1, 1, 0, 0, 1, 1];
+      const times = ['15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+      const morningTemps = [31.0, 30.5, 29.6, 28.4, 27.3, 26.6];
+      const morningHumidity = [62, 64, 67, 71, 75, 78];
+      const morningWind = [16, 17, 16, 14, 12, 10];
+      const morningCodes = [1, 1, 1, 0, 0, 0];
 
       if (data?.hourly?.time?.length >= 24) {
         for (let i = 0; i < 6; i++) {
-          const idx = 5 + i;
+          const idx = 15 + i;
           if (data.hourly.temperature_2m[idx] !== undefined) {
             morningTemps[i] = Math.round(data.hourly.temperature_2m[idx] * 10) / 10;
           }
@@ -98,18 +98,18 @@ export const EventWeatherForecast: React.FC = () => {
       }
 
       setWeather({
-        currentTemp: morningTemps[1],
-        apparentTemp: Math.round((morningTemps[1] + 1.5) * 10) / 10,
-        relativeHumidity: morningHumidity[1],
-        windSpeed: morningWind[1],
-        weatherCode: morningCodes[1],
+        currentTemp: morningTemps[2],
+        apparentTemp: Math.round((morningTemps[2] + 1.5) * 10) / 10,
+        relativeHumidity: morningHumidity[2],
+        windSpeed: morningWind[2],
+        weatherCode: morningCodes[2],
         uvIndex: 3,
         hourlyTimes: times,
         hourlyTemps: morningTemps,
         hourlyHumidity: morningHumidity,
         hourlyWind: morningWind,
         hourlyWeatherCode: morningCodes,
-        sunrise: '06:24',
+        sunrise: '18:25',
       });
     } catch {
       setWeather({
@@ -119,12 +119,12 @@ export const EventWeatherForecast: React.FC = () => {
         windSpeed: 12,
         weatherCode: 1,
         uvIndex: 3,
-        hourlyTimes: ['05:00', '06:00', '07:00', '08:00', '09:00', '10:00'],
-        hourlyTemps: [24.2, 24.8, 26.1, 27.5, 28.9, 30.0],
-        hourlyHumidity: [82, 78, 74, 68, 64, 60],
-        hourlyWind: [10, 12, 14, 16, 17, 18],
-        hourlyWeatherCode: [1, 1, 0, 0, 1, 1],
-        sunrise: '06:24',
+        hourlyTimes: ['15:00', '16:00', '17:00', '18:00', '19:00', '20:00'],
+        hourlyTemps: [31.0, 30.5, 29.6, 28.4, 27.3, 26.6],
+        hourlyHumidity: [62, 64, 67, 71, 75, 78],
+        hourlyWind: [16, 17, 16, 14, 12, 10],
+        hourlyWeatherCode: [1, 1, 1, 0, 0, 0],
+        sunrise: '18:25',
       });
     } finally {
       setLoading(false);
@@ -142,19 +142,19 @@ export const EventWeatherForecast: React.FC = () => {
     windSpeed: 12,
     weatherCode: 1,
     uvIndex: 3,
-    hourlyTimes: ['05:00', '06:00', '07:00', '08:00', '09:00', '10:00'],
-    hourlyTemps: [24.2, 24.8, 26.1, 27.5, 28.9, 30.0],
-    hourlyHumidity: [82, 78, 74, 68, 64, 60],
-    hourlyWind: [10, 12, 14, 16, 17, 18],
-    hourlyWeatherCode: [1, 1, 0, 0, 1, 1],
-    sunrise: '06:24',
+    hourlyTimes: ['15:00', '16:00', '17:00', '18:00', '19:00', '20:00'],
+    hourlyTemps: [31.0, 30.5, 29.6, 28.4, 27.3, 26.6],
+    hourlyHumidity: [62, 64, 67, 71, 75, 78],
+    hourlyWind: [16, 17, 16, 14, 12, 10],
+    hourlyWeatherCode: [1, 1, 1, 0, 0, 0],
+    sunrise: '18:25',
   };
 
   const activeTemp = data.hourlyTemps[selectedSlot] ?? data.currentTemp;
   const activeHum = data.hourlyHumidity[selectedSlot] ?? data.relativeHumidity;
   const activeWind = data.hourlyWind[selectedSlot] ?? data.windSpeed;
   const activeCode = data.hourlyWeatherCode[selectedSlot] ?? data.weatherCode;
-  const activeTime = data.hourlyTimes[selectedSlot] ?? '06:00';
+  const activeTime = data.hourlyTimes[selectedSlot] ?? '17:00';
   const desc = getWeatherDescription(activeCode);
 
   return (
@@ -175,7 +175,7 @@ export const EventWeatherForecast: React.FC = () => {
               </span>
               <div>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-[#2A1450] leading-tight">
-                  พยากรณ์อากาศเช้าวันแข่ง
+                  สภาพอากาศช่วงเวลาปล่อยตัว (ข้อมูลล่าสุด)
                 </h3>
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-[#0369A1]">
                   <MapPin className="w-3.5 h-3.5" />
@@ -232,7 +232,7 @@ export const EventWeatherForecast: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#2A1450] text-[#FFC928] mb-1">
-                  เวลา {activeTime} น. • พระอาทิตย์ขึ้น {data.sunrise} น.
+                  เวลา {activeTime} น. • พระอาทิตย์ตกประมาณ {data.sunrise} น.
                 </span>
                 <div className="flex items-baseline gap-2">
                   <span className="font-display text-4xl sm:text-5xl font-black text-[#2A1450] tabular-nums">
@@ -266,7 +266,7 @@ export const EventWeatherForecast: React.FC = () => {
           <div className="flex items-center gap-2.5 bg-[#FAF8FF] rounded-xl p-2.5 border border-purple-100">
             <Shirt className="w-4 h-4 text-[#6D28D9] shrink-0" />
             <span className="font-bold text-[#2A1450]">
-              แนะนำเสื้อผ้า Micro-Dry ระบายเหงื่อ + หมวกบังแดดเช้า
+              แนะนำเสื้อผ้า Micro-Dry ระบายเหงื่อ + หมวกบังแดดช่วงเย็น
             </span>
           </div>
           <div className="flex items-center gap-2.5 bg-[#FFFBEB] rounded-xl p-2.5 border border-amber-200">

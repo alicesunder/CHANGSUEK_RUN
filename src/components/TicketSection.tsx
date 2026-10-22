@@ -807,16 +807,6 @@ export const TicketSection: React.FC<TicketSectionProps> = ({
   const t1k = ticketById('1km');
   const t3k = ticketById('3km');
 
-  const rows = [
-    { label: '5 กม. บุคคลทั่วไป (Fun & Mass Run)', badge: '5K', price: `${t5k.basePrice} บาท`, note: 'ต่อ 1 คน' },
-    { label: '10 กม. บุคคลทั่วไป (Mini Marathon)', badge: '10K', price: `${t10k.basePrice} บาท`, note: 'ต่อ 1 คน' },
-    { label: 'Dog Run 1 กม. (แพ็กเกจคู่ 1 คน + 1 น้องหมา)', badge: '1K DOG', price: `${t1k.basePrice} บาท`, note: 'แพ็กเกจหลัก' },
-    { label: 'Dog Run 3 กม. (แพ็กเกจคู่ 1 คน + 1 น้องหมา)', badge: '3K DOG', price: `${t3k.basePrice} บาท`, note: 'แพ็กเกจหลัก' },
-    { label: 'Dog Run 1 กม. เพิ่มผู้ร่วมวิ่ง', badge: '+คน', price: `+${t1k.addPersonPrice ?? 2} บาท`, note: 'ต่อ 1 คน' },
-    { label: 'Dog Run 1 กม. เพิ่มสุนัข', badge: '+หมา', price: `+${t1k.addDogPrice ?? 1} บาท`, note: 'ต่อ 1 ตัว' },
-    { label: 'Dog Run 3 กม. เพิ่มผู้ร่วมวิ่ง', badge: '+คน', price: `+${t3k.addPersonPrice ?? 2} บาท`, note: 'ต่อ 1 คน' },
-    { label: 'Dog Run 3 กม. เพิ่มสุนัข', badge: '+หมา', price: `+${t3k.addDogPrice ?? 1} บาท`, note: 'ต่อ 1 ตัว' },
-  ];
 
   const update = (d: Dist, field: 'base' | 'people' | 'dogs', value: number) => {
     const other: Dist = d === '1km' ? '3km' : '1km';
@@ -1015,58 +1005,8 @@ export const TicketSection: React.FC<TicketSectionProps> = ({
 
       {/* ---------- 3. PRICE TABLE + INTERACTIVE LIVE PASS BUILDER ---------- */}
       <div id="ticket-pricing" className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-7 scroll-mt-24">
-        {/* Left: Complete Price Breakdown Table (5 cols) */}
-        <div className="lg:col-span-5 rounded-[28px] overflow-hidden bg-white/95 backdrop-blur-md border border-[#7B3FC6]/20 shadow-[0_20px_45px_-16px_rgba(75,45,120,0.18)] flex flex-col">
-          <div
-            className="px-6 py-4 text-white"
-            style={{ background: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 55%, #C026D3 100%)' }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0">
-                <Ticket className="w-5 h-5 text-[#FFE28A]" />
-              </span>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold leading-tight">
-                  ตารางราคาบัตรวิ่งทั้งหมด
-                </h3>
-                <p className="text-xs text-white/85">
-                  ราคาพิเศษช่วงทดสอบระบบ รวมเสื้อวิ่ง เหรียญ และ E-BIB
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="divide-y divide-[#F3ECFF] flex-1 flex flex-col justify-between">
-            {rows.map((r, i) => (
-              <div
-                key={r.label}
-                className={`px-5 py-2.5 flex items-center justify-between gap-2 ${
-                  i % 2 ? 'bg-[#FAF8FF]' : 'bg-white'
-                } hover:bg-[#F3ECFF]/70 transition-colors`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#F3E8FF] text-[#6D28D9] shrink-0">
-                    {r.badge}
-                  </span>
-                  <span className="text-xs sm:text-sm font-bold text-[#261247] truncate">
-                    {r.label}
-                  </span>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="text-sm font-extrabold text-[#261247] tabular-nums">
-                    {r.price}
-                  </span>
-                  <span className="block text-[10px] font-semibold text-[#6B5A85]">
-                    {r.note}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Interactive Dog Run Pass Builder & Live Ticket Preview (7 cols) */}
-        <div className="lg:col-span-7 rounded-[28px] overflow-hidden bg-white/95 backdrop-blur-md border border-[#7B3FC6]/20 shadow-[0_20px_45px_-16px_rgba(75,45,120,0.18)] flex flex-col justify-between">
+        {/* Dog Run Pass Builder & price calculator (full width) */}
+        <div className="lg:col-span-12 lg:max-w-5xl lg:mx-auto lg:w-full rounded-[28px] overflow-hidden bg-white/95 backdrop-blur-md border border-[#7B3FC6]/20 shadow-[0_20px_45px_-16px_rgba(75,45,120,0.18)] flex flex-col justify-between">
           <div className="px-6 py-4 bg-gradient-to-r from-[#FFF7ED] via-[#FAF5FF] to-[#F0FDFA] border-b border-[#7B3FC6]/15 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFE268] to-[#F59E0B] flex items-center justify-center shrink-0 shadow-sm">
@@ -1077,7 +1017,7 @@ export const TicketSection: React.FC<TicketSectionProps> = ({
                   จำลองแพ็กเกจบัตรวิ่ง Dog Run & คำนวณราคา
                 </h3>
                 <p className="text-xs font-semibold text-[#6B5A85]">
-                  ปรับจำนวนคนและน้องหมา เพื่อดูตัวอย่างบัตรกลุ่มของคุณแบบเรียลไทม์
+                  ปรับจำนวนคนและน้องหมา แล้วดูราคารวมของกลุ่มคุณ
                 </p>
               </div>
             </div>
@@ -1238,7 +1178,7 @@ export const TicketSection: React.FC<TicketSectionProps> = ({
       <div className="flex flex-wrap justify-center gap-3">
         {[
           { Icon: Calendar, text: 'เปลี่ยนประเภท/ระยะทางได้ภายหลัง' },
-          { Icon: ShieldCheck, text: 'สแกนจ่ายปุ๊บ รับ Digital BIB ทันที' },
+          { Icon: ShieldCheck, text: 'ได้ Digital BIB หลังยืนยันการชำระเงิน' },
           { Icon: Headphones, text: 'ทีมสัตวแพทย์อาสาและพยาบาลดูแลตลอดเส้นทาง' },
         ].map(({ Icon, text }) => (
           <span

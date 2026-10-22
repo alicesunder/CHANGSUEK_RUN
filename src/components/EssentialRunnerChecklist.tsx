@@ -53,7 +53,7 @@ const DEFAULT_CHECKLIST: ChecklistItem[] = [
   {
     id: 'sun-protection',
     name: 'ครีมกันแดด SPF50+ & หมวกวิ่ง/แว่นกันแดด',
-    description: 'ป้องกันแสงแดดอ่อนยามเช้าบริเวณชายหาดเปิดโล่ง',
+    description: 'ป้องกันแสงแดดช่วงบ่ายถึงเย็นบริเวณชายหาดเปิดโล่ง',
     icon: Sun,
   },
   {

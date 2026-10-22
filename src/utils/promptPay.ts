@@ -80,3 +80,11 @@ export function generatePromptPayPayload(targetId: string, amount?: number): str
   const checksum = crc16CcittFalse(rawPayload);
   return `${rawPayload}${checksum}`;
 }
+
+/** Formats a Thai bank account number for display, e.g. 2408677648 -> 240-8-67764-8. */
+export function formatThaiBankAccount(raw: string): string {
+  const d = (raw || '').replace(/[^0-9]/g, '');
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 4)}-${d.slice(4, 9)}-${d.slice(9)}`;
+  if (d.length === 12) return `${d.slice(0, 3)}-${d.slice(3, 9)}-${d.slice(9)}`;
+  return d;
+}

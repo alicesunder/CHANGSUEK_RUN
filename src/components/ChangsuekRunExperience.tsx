@@ -109,9 +109,9 @@ export const ChangsuekRunExperience: React.FC<ChangsuekRunExperienceProps> = ({
     {
       step: '05',
       tag: 'RACE DAY',
-      headline: 'ออกสตาร์ทยามเช้า',
-      summary: 'วอร์มอัพพร้อมกันและปล่อยตัวแยกตาม Wave รับแสงแรกริมทะเล',
-      badge: 'ปล่อยตัว 06:00 น.',
+      headline: 'ออกสตาร์ทยามเย็น',
+      summary: 'วอร์มอัพพร้อมกันและปล่อยตัวแยกตามระยะ รับลมทะเลยามเย็นริมหาดชะอำ',
+      badge: 'ปล่อยตัว 16:30 น.',
       icon: Flame,
       actionLabel: 'ดูกำหนดการ',
       onAction: () => {
@@ -126,7 +126,7 @@ export const ChangsuekRunExperience: React.FC<ChangsuekRunExperienceProps> = ({
       step: '06',
       tag: 'FINISH',
       headline: 'รับเหรียญเส้นชัย',
-      summary: 'เข้าเส้นชัยรับเหรียญช้างศึก 3 มิติ พร้อมอาหารเช้าและเกียรติบัตร',
+      summary: 'เข้าเส้นชัยรับเหรียญช้างศึก 3 มิติ พร้อมอาหารว่างและเกียรติบัตร',
       badge: 'Finisher Medal',
       icon: Award,
       actionLabel: 'ดูของที่ระลึก',
@@ -166,11 +166,11 @@ export const ChangsuekRunExperience: React.FC<ChangsuekRunExperienceProps> = ({
               <Sparkles className="w-3.5 h-3.5 text-[#2A1450]" />
               <span>CHANGSUEK RUN ROADMAP · 6 STEPS TO FINISH</span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#2A1450] tracking-tight leading-tight">
               การเดินทางของนักวิ่งช้างศึก
             </h2>
           </div>
-          <p className="text-xs sm:text-sm text-white/80 font-medium max-w-md">
+          <p className="text-xs sm:text-sm text-[#4B2D78] font-medium max-w-md">
             6 ขั้นตอนกระชับเข้าใจง่าย ตั้งแต่เลือกระยะวิ่ง รับป้าย Digital BIB ไปจนถึงการพิชิตเหรียญรางวัลริมหาดชะอำ
           </p>
         </div>

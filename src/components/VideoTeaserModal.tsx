@@ -146,7 +146,7 @@ export const VideoTeaserModal: React.FC<VideoTeaserModalProps> = ({
           <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white text-xs font-bold">
             <div className="flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
               <span className="w-2.5 h-2.5 rounded-full bg-[#2EAD62] animate-ping" />
-              <span>เส้นทางวิ่งริมชายหาดยามเช้า 06:00 น.</span>
+              <span>เส้นทางวิ่งริมชายหาดยามเย็น ปล่อยตัว 16:30 น.</span>
             </div>
             <div className="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
               <span>HD 1080P • ชะอำ - หัวหิน</span>

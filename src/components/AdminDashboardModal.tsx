@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import {
   X,
+  CreditCard,
   Search,
   Download,
   CheckCircle2,
@@ -46,6 +47,7 @@ import {
 import { ServerOrder, adminApi, adminLogin, clearAdminToken, getAdminToken } from '../utils/api';
 import {
   formatPromptPayDisplay,
+  formatThaiBankAccount,
   generatePromptPayPayload,
 } from '../utils/promptPay';
 import {
@@ -61,7 +63,7 @@ import {
 import { formatBaht, ticketById } from '../data/eventData';
 import { RunnerBibCard } from './RunnerBibCard';
 import { PawIcon } from './brand/DogDecor';
-import { SlipApiConfigBar } from './SlipApiConfigBar';
+import { OmiseSettingsCard } from './OmiseSettingsCard';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -127,7 +129,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     '3km': '-',
     '1km': '-',
   });
-  const [slipPreviewUrl, setSlipPreviewUrl] = useState<string>('');
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'security' | 'settings'>(
@@ -215,25 +216,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     window.addEventListener('changsuek_admin_logged_out', onLoggedOut);
     return () => window.removeEventListener('changsuek_admin_logged_out', onLoggedOut);
   }, []);
-
-  // Load the real slip image (with admin token) when inspecting an order
-  useEffect(() => {
-    let url = '';
-    setSlipPreviewUrl('');
-    const o = inspectingOrder as ServerOrder | null;
-    if (o?.hasSlip) {
-      adminApi
-        .slipObjectUrl(o.orderId)
-        .then((u) => {
-          url = u;
-          setSlipPreviewUrl(u);
-        })
-        .catch(() => setSlipPreviewUrl(''));
-    }
-    return () => {
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [inspectingOrder?.orderId]);
 
   // Idle Session Auto-Lock (locks admin session if inactive for sessionIdleTimeoutMinutes)
   useEffect(() => {
@@ -492,6 +474,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           promptPayId: configForm.promptPayId,
           accountName: configForm.accountName,
           bankLabel: configForm.bankLabel,
+          bankAccountNo: configForm.bankAccountNo || '',
           paymentTimeoutMinutes: configForm.paymentTimeoutMinutes,
         },
         counterForm
@@ -796,7 +779,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 ฿{formatBaht(analytics.totalRevenue)}
               </div>
               <div className="text-[11px] font-bold text-slate-500 mt-1 truncate">
-                พร้อมเพย์: {formatPromptPayDisplay(configForm.promptPayId)}
+                {configForm.bankLabel} {formatThaiBankAccount(configForm.bankAccountNo || '')}
               </div>
             </div>
 
@@ -1563,7 +1546,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-extrabold text-slate-700 mb-1">
-                        หมายเลข PromptPay (10 หรือ 13 หลัก) *
+                        รหัสพร้อมเพย์สำหรับสร้าง QR (เบอร์ 10 หลัก / เลขบัตร 13 หลัก / เลขอ้างอิง K PLUS 15 หลัก) *
                       </label>
                       <input
                         type="text"
@@ -1572,7 +1555,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         onChange={(e) =>
                           setConfigForm({ ...configForm, promptPayId: e.target.value })
                         }
-                        placeholder="0818902027"
+                        placeholder="004999254157786"
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-mono text-sm font-bold text-slate-900"
                       />
                     </div>
@@ -1600,6 +1583,33 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       />
                     </div>
 
+                    <div>
+                      <label className="block text-xs font-extrabold text-slate-700 mb-1">
+                        ธนาคาร *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={configForm.bankLabel}
+                        onChange={(e) => setConfigForm({ ...configForm, bankLabel: e.target.value })}
+                        placeholder="ธนาคารกสิกรไทย"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-extrabold text-slate-700 mb-1">
+                        เลขบัญชีธนาคาร (แสดงให้ผู้โอนด้วยมือ)
+                      </label>
+                      <input
+                        type="text"
+                        value={configForm.bankAccountNo || ''}
+                        onChange={(e) => setConfigForm({ ...configForm, bankAccountNo: e.target.value })}
+                        placeholder="240-8-67764-8"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-mono text-sm font-bold text-slate-900"
+                      />
+                    </div>
+
                     <div className="sm:col-span-3">
                       <label className="block text-xs font-extrabold text-slate-700 mb-1">
                         ชื่อบัญชีที่แสดงบนหน้าสแกนจ่ายและในสลิป *
@@ -1611,15 +1621,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         onChange={(e) =>
                           setConfigForm({ ...configForm, accountName: e.target.value })
                         }
-                        placeholder="โครงการวิ่งช้างศึกรัน (ศูนย์ฝึกสุนัขตำรวจ ค่ายพระรามหก)"
+                        placeholder="ชื่อบัญชีตามสมุดบัญชีธนาคาร"
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* External Slip Verification API Connection Bar */}
-                <SlipApiConfigBar defaultExpanded={true} />
+                {/* Payment gateway (Omise only) */}
+                <OmiseSettingsCard />
 
                 {/* 2. Admin Username, Password & Security Policy Settings */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
@@ -1842,27 +1852,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
                   {/* Left 6 cols: Bank e-Slip Image */}
                   <div className="md:col-span-6 bg-slate-100 rounded-2xl p-3 border border-slate-200 text-center">
-                    {slipPreviewUrl ? (
-                      <img
-                        src={slipPreviewUrl}
-                        alt={`สลิป ${inspectingOrder.orderId}`}
-                        className="w-full max-h-[420px] object-contain rounded-xl mx-auto shadow-sm"
-                      />
-                    ) : (
-                      <div className="py-16 text-xs font-bold text-slate-500">
-                        {(inspectingOrder as ServerOrder).hasSlip
-                          ? 'กำลังโหลดรูปสลิป...'
-                          : inspectingOrder.paymentStatus === 'PAID'
-                          ? 'ชำระผ่านระบบชำระเงินออนไลน์ (ไม่มีสลิป)'
-                          : 'ผู้สมัครยังไม่ได้แนบสลิป'}
+                    <div className="py-10 px-4 space-y-2 text-xs font-bold text-slate-600">
+                      <CreditCard className="w-8 h-8 mx-auto text-purple-700" />
+                      <div className="text-sm font-black text-slate-900">
+                        {inspectingOrder.paymentStatus === 'PAID'
+                          ? inspectingOrder.verificationStatus === 'ADMIN_APPROVED'
+                            ? 'แอดมินอนุมัติด้วยตนเอง'
+                            : 'ชำระผ่าน Omise PromptPay แล้ว'
+                          : 'ยังไม่ได้รับการชำระเงินจาก Omise'}
                       </div>
-                    )}
-                    {(inspectingOrder as ServerOrder).aiReview && (
-                      <p className="mt-2 text-left text-[11px] font-semibold text-slate-600">
-                        {(inspectingOrder as ServerOrder).aiReview}
-                        <span className="block text-slate-400">(ผลอ่านจาก AI ใช้ประกอบเท่านั้น — ตรวจยอดเงินเข้าบัญชีจริงก่อนอนุมัติ)</span>
+                      <div className="font-mono break-all">
+                        {inspectingOrder.paymentRef || (inspectingOrder as ServerOrder).omiseChargeId || '-'}
+                      </div>
+                      <p className="font-semibold text-slate-500">
+                        ตรวจรายการได้ใน Omise Dashboard → Charges
                       </p>
-                    )}
+                    </div>
                   </div>
 
                   {/* Right 6 cols: Audit Details & Approve / Reject Buttons */}

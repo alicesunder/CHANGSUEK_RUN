@@ -20,7 +20,7 @@ export const EventGallery: React.FC = () => {
     {
       id: 'g1',
       category: 'beach',
-      title: 'แสงแรกแห่งวันริมหาดค่ายนเรศวร',
+      title: 'แสงอาทิตย์ยามเย็นริมหาดค่ายนเรศวร',
       location: 'หาดทรายหน้าโรงแรม Sea Sand Sun',
       description: 'ทัศนียภาพพระอาทิตย์ขึ้นเหนือผืนน้ำอ่าวไทย ขณะขบวนนักวิ่งเริ่มออกตัวรับลมทะเลสดชื่น',
       accent: '#FFC928',
@@ -70,7 +70,7 @@ export const EventGallery: React.FC = () => {
     {
       id: 'g6',
       category: 'beach',
-      title: 'ลานอาหารเช้าและกาแฟโบราณเพชรบุรี',
+      title: 'ลานอาหารและกาแฟโบราณเพชรบุรี',
       location: 'โซนอาหาร Food Village',
       description: 'ชิมขนมหม้อแกงเมืองเพชร ข้าวต้มปลาอินทรีสดๆ และน้ำตาลสดแท้จากสวนตาลโตนด',
       accent: '#45B9EA',

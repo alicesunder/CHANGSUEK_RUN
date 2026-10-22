@@ -60,7 +60,7 @@ export const MerchShowcase: React.FC<MerchShowcaseProps> = ({
     {
       icon: Gift,
       title: 'กระเป๋าผ้า & ประกันอุบัติเหตุ',
-      desc: 'พร้อมอาหารเช้า เครื่องดื่ม และขนมสำหรับน้องหมา',
+      desc: 'พร้อมอาหารว่าง เครื่องดื่ม และขนมสำหรับน้องหมา',
       tag: 'คุ้มครองตลอดงาน',
       accent: '#15803D',
       bg: '#DCFCE7',

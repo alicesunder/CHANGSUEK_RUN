@@ -56,71 +56,6 @@ export const Hero: React.FC<HeroProps> = ({
     { id: '10km', label: '10 KM', tag: 'Mini Marathon', color: '#7C3AED', bg: '#FAF5FF' },
   ];
 
-  const quickNavItems = [
-    {
-      label: 'เกณฑ์การสมัคร',
-      targetId: 'experience',
-      circleBg: 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)',
-      iconColor: '#6D28D9',
-      Icon: TicketCheck,
-    },
-    {
-      label: 'บัตร & ระยะวิ่ง',
-      targetId: 'distances',
-      circleBg: 'linear-gradient(135deg, #CCFBF1 0%, #99F6E4 100%)',
-      iconColor: '#0F766E',
-      Icon: Mountain,
-    },
-    {
-      label: 'ค่าธรรมเนียม',
-      targetId: 'ticket-pricing',
-      circleBg: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-      iconColor: '#B45309',
-      Icon: CircleDollarSign,
-    },
-    {
-      label: 'แผนที่ GPS',
-      targetId: 'schedule-and-map',
-      circleBg: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
-      iconColor: '#0369A1',
-      Icon: MapPin,
-    },
-    {
-      label: 'ตารางแข่งขัน',
-      targetId: 'schedule-and-map',
-      circleBg: 'linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%)',
-      iconColor: '#BE185D',
-      Icon: Calendar,
-    },
-    {
-      label: 'อันดับ & สถิติ',
-      targetId: 'leaderboard',
-      circleBg: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
-      iconColor: '#A16207',
-      Icon: Crown,
-    },
-    {
-      label: 'ที่พักใกล้สนาม',
-      targetId: 'hotels',
-      circleBg: 'linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)',
-      iconColor: '#15803D',
-      Icon: Camera,
-    },
-    {
-      label: 'เสื้อ & เหรียญ',
-      targetId: 'merch-showcase',
-      circleBg: 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
-      iconColor: '#5B21B6',
-      Icon: Store,
-    },
-    {
-      label: 'คำถามที่พบบ่อย',
-      targetId: 'faq',
-      circleBg: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)',
-      iconColor: '#C2410C',
-      Icon: HelpCircle,
-    },
-  ];
 
   return (
     <>
@@ -289,7 +224,7 @@ export const Hero: React.FC<HeroProps> = ({
                   {/* Top-Left Live Badge */}
                   <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-3 py-1 text-[10px] font-extrabold text-[#2A1450] shadow-md">
                     <Sparkles className="w-3 h-3 text-[#F59E0B]" />
-                    <span>บัตรทดสอบระบบ 1–4 บาท · ออก BIB ทันที</span>
+                    <span>เปิดรับสมัครออนไลน์แล้ว</span>
                   </div>
 
                   {/* Bottom Left Headline & Venue inside Mobile Artwork */}
@@ -469,39 +404,6 @@ export const Hero: React.FC<HeroProps> = ({
         </svg>
       </div>
 
-      {/* ================================================================= */}
-      {/* 3. 9 LUMINOUS QUICK-NAVIGATION ICON CARDS STRIP                   */}
-      {/* ================================================================= */}
-      <div className="bg-gradient-to-b from-[#FAF8FF] via-[#F7F3FF] to-[#FAF8FF] pt-3 sm:pt-4 pb-6 sm:pb-10 relative z-20">
-        <div className="max-w-[1360px] mx-auto px-3.5 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5 sm:gap-3.5">
-            {quickNavItems.map(({ label, targetId, circleBg, iconColor, Icon }, idx) => (
-              <motion.button
-                key={label}
-                type="button"
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: idx * 0.025 }}
-                whileHover={{ y: -5, scale: 1.03 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => scrollToSection(targetId)}
-                className="group relative bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3.5 border border-[#7B3FC6]/15 hover:border-[#7B3FC6]/45 shadow-[0_12px_26px_-10px_rgba(67,28,130,0.16),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-[0_18px_34px_-10px_rgba(91,32,168,0.28)] flex flex-col items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer overflow-hidden"
-              >
-                <span
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 border border-white shadow-sm"
-                  style={{ background: circleBg, color: iconColor }}
-                >
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.3]" />
-                </span>
-                <span className="text-[11px] sm:text-xs font-extrabold text-[#261247] group-hover:text-[#6D28D9] whitespace-nowrap truncate max-w-full">
-                  {label}
-                </span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div>
     </>
   );
 };

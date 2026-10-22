@@ -58,6 +58,8 @@ export interface StoredOrder {
   aiReview?: string;
   omiseChargeId?: string;
   omiseQrImageUrl?: string;
+  /** Earlier charges of this order (replaced by "new QR"); a late payment on any of them still counts */
+  omisePastChargeIds?: string[];
   kitStatus: 'PENDING_PICKUP' | 'CHECKED_IN';
   registrationStatus: 'REGISTERED' | 'CONFIRMED' | 'CHECKED_IN';
   createdAt: string;
@@ -66,9 +68,12 @@ export interface StoredOrder {
 }
 
 export interface PublicSettings {
+  /** PromptPay proxy used to build the QR: phone (10), citizen/tax ID (13) or K PLUS/e-wallet ref (15) */
   promptPayId: string;
   accountName: string;
   bankLabel: string;
+  /** Bank account number shown to runners who transfer manually (display only) */
+  bankAccountNo: string;
   paymentTimeoutMinutes: number;
 }
 
@@ -96,11 +101,12 @@ export const SLIP_DIR = path.join(DATA_DIR, 'slips');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 const DEFAULT_SETTINGS: PublicSettings = {
-  promptPayId: process.env.PROMPTPAY_ID || '0818902027',
+  promptPayId: process.env.PROMPTPAY_ID || '004999254157786',
   accountName:
     process.env.PROMPTPAY_ACCOUNT_NAME ||
-    'โครงการวิ่งช้างศึกรัน (ศูนย์ฝึกสุนัขตำรวจ ค่ายพระรามหก)',
-  bankLabel: 'PromptPay พร้อมเพย์ทุกธนาคาร',
+    'ช้างศึก รัน โดย นาย กัปปน์ณัฏฐ์ กชกรนันท์ธน และ นาย เอกพัชญ์ ตันสุวรรณรัตน์',
+  bankLabel: process.env.BANK_LABEL || 'ธนาคารกสิกรไทย',
+  bankAccountNo: process.env.BANK_ACCOUNT_NO || '2408677648',
   paymentTimeoutMinutes: 15,
 };
 
@@ -242,7 +248,8 @@ export function hasBankSlipApi(): boolean {
 
 /** What the runner (owner of the order) is allowed to see. */
 export function toRunnerView(o: StoredOrder) {
-  const { accessTokenHash, slipFile, slipHash, aiReview, ...rest } = o;
+  const { accessTokenHash, slipFile, slipHash, aiReview, omisePastChargeIds, omiseQrImageUrl, ...rest } = o;
+  void omiseQrImageUrl;
   return rest;
 }
 

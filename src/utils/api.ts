@@ -9,14 +9,16 @@ export interface PublicConfig {
   promptPayId: string;
   accountName: string;
   bankLabel: string;
+  bankAccountNo: string;
   paymentTimeoutMinutes: number;
   nextBib: Record<RouteId, string>;
-  autoSlipVerification: boolean;
-  omiseEnabled: boolean;
+  /** false until the organiser configures Omise — registration is closed until then */
+  paymentReady: boolean;
 }
 
 export type ServerOrder = TicketOrder & {
   expiresAt: string;
+  omiseChargeId?: string;
   omiseQrImageUrl?: string;
   hasSlip?: boolean;
   aiReview?: string;
@@ -117,23 +119,21 @@ export async function fetchOrder(ref: PendingOrderRef): Promise<ServerOrder> {
   return res.order;
 }
 
-export interface SlipSubmitResult {
-  orderStatus: TicketOrder['verificationStatus'];
-  message: string;
-  reasons: string[];
-  order: ServerOrder;
+/** Loads the Omise QR through our server and returns a same-origin object URL (savable on phones). */
+export async function fetchQrObjectUrl(ref: PendingOrderRef): Promise<string> {
+  const resp = await fetch(`/api/orders/${encodeURIComponent(ref.orderId)}/qr`, {
+    headers: { 'x-order-token': ref.accessToken },
+  });
+  if (!resp.ok) throw new ApiError('โหลด QR ไม่สำเร็จ', resp.status);
+  return URL.createObjectURL(await resp.blob());
 }
 
-export async function submitSlip(
-  ref: PendingOrderRef,
-  imageDataUrl: string,
-  qrPayload?: string
-): Promise<SlipSubmitResult> {
-  return request<SlipSubmitResult>(`/api/orders/${encodeURIComponent(ref.orderId)}/slip`, {
+export async function renewQr(ref: PendingOrderRef): Promise<ServerOrder> {
+  const res = await request<{ order: ServerOrder }>(`/api/orders/${encodeURIComponent(ref.orderId)}/renew-qr`, {
     method: 'POST',
-    headers: { ...jsonHeaders, 'x-order-token': ref.accessToken },
-    body: JSON.stringify({ imageDataUrl, qrPayload }),
+    headers: { 'x-order-token': ref.accessToken },
   });
+  return res.order;
 }
 
 // ---------------------------------------------------------------------------
@@ -193,6 +193,7 @@ export interface AdminSettings {
   promptPayId: string;
   accountName: string;
   bankLabel: string;
+  bankAccountNo: string;
   paymentTimeoutMinutes: number;
 }
 
@@ -219,12 +220,24 @@ export const adminApi = {
       headers: jsonHeaders,
       body: JSON.stringify({ settings, bibCounters }),
     }),
-  /** Downloads the slip image with the admin token and returns an object URL. */
-  async slipObjectUrl(orderId: string): Promise<string> {
-    const resp = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}/slip`, {
-      headers: { Authorization: `Bearer ${getAdminToken() || ''}` },
-    });
-    if (!resp.ok) throw new ApiError('โหลดรูปสลิปไม่ได้', resp.status);
-    return URL.createObjectURL(await resp.blob());
-  },
+  gatewayStatus: () =>
+    adminFetch<GatewayStatus>('/api/admin/payment-gateway'),
+  setOmiseKey: (secretKey: string) =>
+    adminFetch<GatewayStatus>('/api/admin/payment-gateway', {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify({ secretKey }),
+    }),
+  clearOmiseKey: () =>
+    adminFetch<GatewayStatus>('/api/admin/payment-gateway', {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify({ clear: true }),
+    }),
 };
+
+export interface GatewayStatus {
+  hasOmiseKey: boolean;
+  mode: 'live' | 'test' | null;
+  webhookPath: string;
+}

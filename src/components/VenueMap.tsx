@@ -83,7 +83,7 @@ export const VenueMap: React.FC = () => {
       id: 'food_village',
       name: 'ลานอาหาร & เครื่องดื่ม (Food Village)',
       category: 'Hospitality',
-      description: 'บริการอาหารเช้า ข้าวต้มทรงเครื่อง ก๋วยเตี๋ยว ผลไม้สด น้ำผลไม้ปั่น และกาแฟสดโบราณเพชรบุรี',
+      description: 'บริการอาหารและเครื่องดื่ม ข้าวต้มทรงเครื่อง ก๋วยเตี๋ยว ผลไม้สด น้ำผลไม้ปั่น และกาแฟสดโบราณเพชรบุรี',
       icon: Utensils,
       color: '#F5B800',
       badgeBg: 'bg-amber-50 text-amber-700',

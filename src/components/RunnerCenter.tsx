@@ -246,7 +246,7 @@ export const RunnerCenter: React.FC<RunnerCenterProps> = ({
                   className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#FFC928] hover:bg-[#F5B800] text-[#17151C] font-black text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>สมัครวิ่งเลย (รับ BIB ทันที)</span>
+                  <span>สมัครวิ่งเลย</span>
                 </button>
 
                 <button

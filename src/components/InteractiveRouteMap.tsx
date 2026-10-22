@@ -340,7 +340,7 @@ export const InteractiveRouteMap: React.FC<InteractiveRouteMapProps> = ({
         tagColor: '#3D106B',
         distance: 'กม. 0 / เส้นชัย',
         googleMapsUrl: getGoogleMapsUrl('Sea Sand Sun Hua Hin Resort', 12.6966, 99.9638),
-        features: ['จุดลงทะเบียน', 'ซุ้มอาหารเช้า', 'จุดรับฝากของ', 'หน่วยแพทย์ใหญ่'],
+        features: ['จุดลงทะเบียน', 'ซุ้มอาหาร', 'จุดรับฝากของ', 'หน่วยแพทย์ใหญ่'],
       });
     });
     startFinishLayerRef.current.addLayer(startFinishMarker);

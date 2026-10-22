@@ -3,11 +3,9 @@
  *
  * Money rules (all enforced here, never in the browser):
  *  1. Prices come from src/data/eventData.ts on the server. The browser cannot set the amount.
- *  2. An order becomes PAID only by:
+ *  2. Payment is Omise PromptPay only (no slip upload). An order becomes PAID only by:
  *       a) an Omise charge we re-fetched from api.omise.co with our secret key, or
- *       b) a bank slip confirmed by EasySlip / Thunder / SlipOK with matching amount,
- *          matching receiver, and an unused transaction reference, or
- *       c) an authenticated admin approving it.
+ *       b) an authenticated admin approving it manually (e.g. cash paid on site).
  *  3. BIB numbers are assigned by the server at the moment an order is paid.
  *  4. Admin endpoints require a signed token from /api/admin/login.
  */
@@ -25,9 +23,7 @@ import {
   SLIP_DIR,
   getEffectiveSlipApiKeys,
   getOrder,
-  hasBankSlipApi,
   hashToken,
-  isSlipHashUsed,
   isTransRefUsed,
   markOrderPaid,
   mutate,
@@ -39,14 +35,7 @@ import {
   type StoredOrder,
 } from './server/store';
 import { checkCredentials, issueToken, requireAdmin } from './server/auth';
-import {
-  aiSlipAdvisory,
-  createOmiseCharge,
-  fetchVerifiedOmiseCharge,
-  omiseEnabledFor,
-  receiverMatches,
-  verifyWithBankSlipApi,
-} from './server/payments';
+import { createOmiseCharge, fetchOmiseQrImage, fetchVerifiedOmiseCharge, omiseKeyMode } from './server/payments';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,8 +43,6 @@ const __dirname = path.dirname(__filename);
 const ROUTE_IDS: RouteId[] = ticketCategories.map((t) => t.id);
 const SHIRT_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 const MAX_EXTRA = 9;
-const SLIP_ACCEPT_WINDOW_MS = 48 * 60 * 60 * 1000;
-const MAX_SLIP_BYTES = 6 * 1024 * 1024;
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -95,9 +82,11 @@ function loadOwnedOrder(req: express.Request, res: express.Response): StoredOrde
 }
 
 /** Re-checks an Omise charge and marks the order paid if (and only if) Omise confirms it. */
-async function settleFromOmise(order: StoredOrder): Promise<StoredOrder> {
-  if (!order.omiseChargeId || order.paymentStatus === 'PAID') return order;
-  const charge = await fetchVerifiedOmiseCharge(order.omiseChargeId);
+async function settleFromOmise(order: StoredOrder, chargeId = order.omiseChargeId): Promise<StoredOrder> {
+  if (!chargeId || order.paymentStatus === 'PAID') return order;
+  const known = chargeId === order.omiseChargeId || (order.omisePastChargeIds || []).includes(chargeId);
+  if (!known) return order;
+  const charge = await fetchVerifiedOmiseCharge(chargeId);
   if (
     charge?.paid &&
     charge.orderId === order.orderId &&
@@ -108,7 +97,7 @@ async function settleFromOmise(order: StoredOrder): Promise<StoredOrder> {
       markOrderPaid(order.orderId, {
         status: 'AUTO_VERIFIED',
         verifiedBy: 'Omise PromptPay (ยืนยันจาก Omise API)',
-        paymentRef: charge.chargeId || order.omiseChargeId,
+        paymentRef: charge.chargeId || chargeId,
         senderBank: 'Omise PromptPay',
       }) || order
     );
@@ -116,39 +105,34 @@ async function settleFromOmise(order: StoredOrder): Promise<StoredOrder> {
   return order;
 }
 
+/** Checks the current charge and the two most recent replaced ones. */
+async function settleAll(order: StoredOrder): Promise<StoredOrder> {
+  for (const id of [order.omiseChargeId, ...(order.omisePastChargeIds || []).slice(-2)]) {
+    if (order.paymentStatus === 'PAID') break;
+    order = await settleFromOmise(order, id);
+  }
+  return order;
+}
+
 function publicConfig() {
   const s = read().settings;
-  const keys = getEffectiveSlipApiKeys();
   return {
     promptPayId: s.promptPayId,
     accountName: s.accountName,
     bankLabel: s.bankLabel,
+    bankAccountNo: s.bankAccountNo,
     paymentTimeoutMinutes: s.paymentTimeoutMinutes,
     nextBib: Object.fromEntries(ROUTE_IDS.map((r) => [r, nextBibPreview(r)])),
-    autoSlipVerification: hasBankSlipApi(),
-    omiseEnabled: Boolean(keys.omiseSecretKey),
+    /** false until an Omise secret key is configured — registration is closed until then */
+    paymentReady: Boolean(getEffectiveSlipApiKeys().omiseSecretKey),
   };
 }
 
-function slipApiStatus() {
-  const k = getEffectiveSlipApiKeys();
+function gatewayStatus() {
   return {
-    activeExternalProvider: k.easySlipKey
-      ? 'EASYSLIP_API'
-      : k.thunderKey
-      ? 'THUNDER_API'
-      : k.slipOkKey && k.slipOkBranch
-      ? 'SLIPOK_API'
-      : 'MANUAL_ADMIN_REVIEW',
-    activeAutoGateway: k.omiseSecretKey ? 'OMISE_PROMPTPAY_WEBHOOK' : 'NONE',
-    hasEasySlipKey: Boolean(k.easySlipKey),
-    hasThunderKey: Boolean(k.thunderKey),
-    hasSlipOkKey: Boolean(k.slipOkKey && k.slipOkBranch),
-    hasStripeKey: false,
-    hasOmiseKey: Boolean(k.omiseSecretKey),
-    hasGbPrimePayKey: false,
-    slipOkBranch: k.slipOkBranch || '',
-    strictSixLayerGate: true,
+    hasOmiseKey: Boolean(getEffectiveSlipApiKeys().omiseSecretKey),
+    mode: omiseKeyMode(),
+    webhookPath: '/api/payment-webhook',
   };
 }
 
@@ -166,7 +150,6 @@ async function startServer() {
   });
 
   const smallJson = express.json({ limit: '200kb' });
-  const slipJson = express.json({ limit: '10mb' });
 
   // ---------------- Public ----------------
   app.get('/api/public-config', (_req, res) => {
@@ -177,6 +160,10 @@ async function startServer() {
   app.post('/api/orders', smallJson, async (req, res) => {
     if (rateLimited(`order:${clientIp(req)}`, 15, 10 * 60 * 1000)) {
       res.status(429).json({ error: 'สร้างคำสั่งซื้อบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่' });
+      return;
+    }
+    if (!getEffectiveSlipApiKeys().omiseSecretKey) {
+      res.status(503).json({ error: 'ระบบชำระเงินยังไม่เปิดใช้งาน กรุณาติดต่อผู้จัดงาน' });
       return;
     }
     const b = req.body || {};
@@ -247,17 +234,20 @@ async function startServer() {
       return o;
     });
 
-    if (omiseEnabledFor(total)) {
-      const charge = await createOmiseCharge({ amountBaht: total, orderId: order.orderId });
-      if (charge.chargeId) {
-        mutate(() => {
-          order.omiseChargeId = charge.chargeId;
-          order.omiseQrImageUrl = charge.qrImageUrl;
-        });
-      } else {
-        console.warn(`[omise] charge create failed for ${order.orderId}: ${charge.error}`);
-      }
+    const charge = await createOmiseCharge({ amountBaht: total, orderId: order.orderId });
+    if (!charge.chargeId || !charge.qrImageUrl) {
+      console.warn(`[omise] charge create failed for ${order.orderId}: ${charge.error}`);
+      mutate((d) => {
+        d.orders = d.orders.filter((o) => o.orderId !== order.orderId);
+      });
+      res.status(502).json({ error: 'สร้าง QR ชำระเงินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง' });
+      return;
     }
+    mutate(() => {
+      order.omiseChargeId = charge.chargeId;
+      order.omiseQrImageUrl = charge.qrImageUrl;
+      if (charge.expiresAt) order.expiresAt = charge.expiresAt;
+    });
 
     res.json({ order: toRunnerView(order), accessToken: token, config: publicConfig() });
   });
@@ -266,119 +256,53 @@ async function startServer() {
   app.get('/api/orders/:orderId', async (req, res) => {
     let order = loadOwnedOrder(req, res);
     if (!order) return;
-    order = await settleFromOmise(order);
+    order = await settleAll(order);
     res.json({ order: toRunnerView(order) });
   });
 
-  // Runner submits a bank slip for their order.
-  app.post('/api/orders/:orderId/slip', slipJson, async (req, res) => {
+  // QR image for the runner's own order, served same-origin so it can be saved on a phone.
+  app.get('/api/orders/:orderId/qr', async (req, res) => {
     const order = loadOwnedOrder(req, res);
     if (!order) return;
-    if (rateLimited(`slip:${order.orderId}`, 8, 15 * 60 * 1000)) {
-      res.status(429).json({ error: 'ส่งสลิปบ่อยเกินไป กรุณารอ 15 นาที' });
+    const img = order.omiseQrImageUrl ? await fetchOmiseQrImage(order.omiseQrImageUrl) : null;
+    if (!img) {
+      res.status(502).json({ error: 'โหลด QR ไม่สำเร็จ' });
       return;
     }
+    res.setHeader('Content-Type', img.type);
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    // The image comes from Omise; never let it run scripts if opened directly.
+    res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    res.send(img.body);
+  });
+
+  // New QR for an unpaid order whose Omise charge expired (same order, same price).
+  app.post('/api/orders/:orderId/renew-qr', async (req, res) => {
+    let order = loadOwnedOrder(req, res);
+    if (!order) return;
+    if (rateLimited(`renew:${order.orderId}`, 6, 60 * 60 * 1000)) {
+      res.status(429).json({ error: 'ขอ QR ใหม่บ่อยเกินไป กรุณารอสักครู่' });
+      return;
+    }
+    order = await settleAll(order);
     if (order.paymentStatus === 'PAID') {
-      res.json({ orderStatus: order.verificationStatus, message: 'คำสั่งซื้อนี้ชำระเงินแล้ว', reasons: [], order: toRunnerView(order) });
+      res.json({ order: toRunnerView(order) });
       return;
     }
-    if (Date.now() - new Date(order.createdAt).getTime() > SLIP_ACCEPT_WINDOW_MS) {
-      res.status(400).json({ error: 'คำสั่งซื้อนี้หมดอายุแล้ว กรุณาสมัครใหม่หรือติดต่อผู้จัดงาน' });
+    const charge = await createOmiseCharge({ amountBaht: order.totalPrice, orderId: order.orderId });
+    if (!charge.chargeId || !charge.qrImageUrl) {
+      res.status(502).json({ error: 'สร้าง QR ใหม่ไม่สำเร็จ กรุณาลองใหม่' });
       return;
     }
-
-    const m = String(req.body?.imageDataUrl || '').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
-    if (!m) {
-      res.status(400).json({ error: 'กรุณาอัปโหลดรูปสลิปเป็นไฟล์ JPG, PNG หรือ WEBP' });
-      return;
-    }
-    const mimeType = m[1];
-    const bytes = Buffer.from(m[2], 'base64');
-    if (bytes.length === 0 || bytes.length > MAX_SLIP_BYTES) {
-      res.status(400).json({ error: 'ไฟล์รูปสลิปใหญ่เกินไป (สูงสุด 6 MB)' });
-      return;
-    }
-    const slipHash = crypto.createHash('sha256').update(bytes).digest('hex');
-    if (isSlipHashUsed(slipHash) && order.slipHash !== slipHash) {
-      res.json({ orderStatus: order.verificationStatus, message: 'สลิปนี้เคยถูกใช้กับคำสั่งซื้ออื่นแล้ว', reasons: ['ห้ามใช้สลิปซ้ำ'], order: toRunnerView(order) });
-      return;
-    }
-
-    const saveSlip = () => {
-      const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
-      const file = `${order.orderId}-${Date.now()}.${ext}`;
-      fs.writeFileSync(path.join(SLIP_DIR, file), bytes);
-      mutate((d) => {
-        if (order.slipFile) fs.rm(path.join(SLIP_DIR, order.slipFile), { force: true }, () => {});
-        order.slipFile = file;
-        order.slipHash = slipHash;
-        if (!d.usedSlipHashes.includes(slipHash)) d.usedSlipHashes.push(slipHash);
-      });
-    };
-
-    const qrPayload = typeof req.body?.qrPayload === 'string' ? req.body.qrPayload.trim() : '';
-    const settings = read().settings;
-
-    // ---- Path A: automatic verification through a bank slip API ----
-    if (hasBankSlipApi() && /^[0-9A-Za-z]{20,512}$/.test(qrPayload)) {
-      const outcome = await verifyWithBankSlipApi(qrPayload, order.totalPrice);
-      if (outcome.verified) {
-        const reasons: string[] = [];
-        if (typeof outcome.amount !== 'number' || Math.abs(outcome.amount - order.totalPrice) > 0.01) {
-          reasons.push(`ยอดโอน ${outcome.amount ?? '?'} บาท ไม่ตรงกับยอดที่ต้องชำระ ${order.totalPrice} บาท`);
-        }
-        if (!receiverMatches(outcome, settings)) {
-          reasons.push(`ผู้รับโอน (${outcome.receiverName || '?'} ${outcome.receiverAccount || ''}) ไม่ใช่บัญชีผู้จัดงาน`);
-        }
-        if (!outcome.transRef) reasons.push('ไม่พบเลขที่รายการจากธนาคาร');
-        else if (isTransRefUsed(outcome.transRef)) reasons.push(`เลขที่รายการ ${outcome.transRef} ถูกใช้ไปแล้ว`);
-
-        if (reasons.length === 0) {
-          saveSlip();
-          const paid = markOrderPaid(order.orderId, {
-            status: 'AUTO_VERIFIED',
-            verifiedBy: `ตรวจสลิปอัตโนมัติ (${outcome.provider})`,
-            paymentRef: outcome.transRef!,
-            senderBank: outcome.senderBank || '',
-          })!;
-          res.json({ orderStatus: paid.verificationStatus, message: 'ตรวจสอบกับธนาคารแล้ว ชำระเงินสำเร็จ', reasons: [], order: toRunnerView(paid) });
-          return;
-        }
-        res.json({ orderStatus: order.verificationStatus, message: 'สลิปไม่ผ่านการตรวจสอบ', reasons, order: toRunnerView(order) });
-        return;
-      }
-      if (!outcome.unavailable) {
-        res.json({
-          orderStatus: order.verificationStatus,
-          message: 'ไม่พบรายการโอนนี้ในระบบธนาคาร',
-          reasons: [outcome.errorReason || 'สลิปไม่ผ่านการตรวจสอบ'],
-          order: toRunnerView(order),
-        });
-        return;
-      }
-      console.warn(`[slip-api] ${outcome.provider} unavailable for ${order.orderId}: ${outcome.errorReason}`);
-      // fall through to manual review
-    }
-
-    // ---- Path B: manual review by admin (AI reading attached as a hint only) ----
-    saveSlip();
-    const aiReview = await aiSlipAdvisory({
-      mimeType,
-      base64Data: m[2],
-      expectedAmount: order.totalPrice,
-      settings,
-    });
+    const timeoutMin = Math.max(1, read().settings.paymentTimeoutMinutes || 15);
+    const o = order;
     mutate(() => {
-      order.verificationStatus = 'PENDING_REVIEW';
-      order.aiReview = aiReview;
-      order.verificationNote = qrPayload ? `Mini-QR: ${qrPayload.slice(0, 80)}` : 'อ่าน Mini-QR บนสลิปไม่ได้';
+      if (o.omiseChargeId) o.omisePastChargeIds = [...(o.omisePastChargeIds || []), o.omiseChargeId].slice(-10);
+      o.omiseChargeId = charge.chargeId;
+      o.omiseQrImageUrl = charge.qrImageUrl;
+      o.expiresAt = charge.expiresAt || new Date(Date.now() + timeoutMin * 60 * 1000).toISOString();
     });
-    res.json({
-      orderStatus: 'PENDING_REVIEW',
-      message: 'ได้รับสลิปแล้ว เจ้าหน้าที่จะตรวจสอบและออกเลข BIB ให้',
-      reasons: [],
-      order: toRunnerView(order),
-    });
+    res.json({ order: toRunnerView(o) });
   });
 
   // Omise webhook. The body is only a hint — we always re-fetch the charge from Omise.
@@ -387,7 +311,7 @@ async function startServer() {
     if (chargeId) {
       const charge = await fetchVerifiedOmiseCharge(chargeId);
       const order = charge?.orderId ? getOrder(charge.orderId) : undefined;
-      if (order && order.omiseChargeId === chargeId) await settleFromOmise(order);
+      if (order) await settleFromOmise(order, chargeId);
     }
     res.json({ received: true });
   });
@@ -413,7 +337,7 @@ async function startServer() {
   app.get('/api/admin/orders', requireAdmin, async (_req, res) => {
     // Settle any Omise orders still waiting (covers missed webhooks).
     const waiting = read().orders.filter((o) => o.omiseChargeId && o.paymentStatus !== 'PAID').slice(0, 20);
-    for (const o of waiting) await settleFromOmise(o);
+    for (const o of waiting) await settleAll(o);
     res.json({
       orders: read().orders.map(toAdminView),
       bibCounters: read().bibCounters,
@@ -489,16 +413,6 @@ async function startServer() {
     res.json({ ok: true });
   });
 
-  app.get('/api/admin/orders/:orderId/slip', requireAdmin, (req, res) => {
-    const order = getOrder(String(req.params.orderId));
-    if (!order?.slipFile) {
-      res.status(404).json({ error: 'ไม่มีไฟล์สลิป' });
-      return;
-    }
-    res.setHeader('Cache-Control', 'no-store');
-    res.sendFile(path.join(SLIP_DIR, path.basename(order.slipFile)));
-  });
-
   app.get('/api/admin/settings', requireAdmin, (_req, res) => {
     res.json({ settings: read().settings, bibCounters: read().bibCounters });
   });
@@ -508,7 +422,12 @@ async function startServer() {
     const counters = req.body?.bibCounters || {};
     const promptPayId = String(s.promptPayId || '').replace(/[^0-9]/g, '');
     if (![10, 13, 15].includes(promptPayId.length)) {
-      res.status(400).json({ error: 'หมายเลขพร้อมเพย์ต้องเป็นเบอร์โทร 10 หลัก หรือเลขบัตร/เลขผู้เสียภาษี 13 หลัก' });
+      res.status(400).json({ error: 'รหัสพร้อมเพย์ต้องเป็นเบอร์โทร 10 หลัก, เลขบัตร/เลขผู้เสียภาษี 13 หลัก หรือเลขอ้างอิง K PLUS 15 หลัก' });
+      return;
+    }
+    const bankAccountNo = String(s.bankAccountNo || '').replace(/[^0-9]/g, '');
+    if (bankAccountNo && (bankAccountNo.length < 10 || bankAccountNo.length > 15)) {
+      res.status(400).json({ error: 'เลขบัญชีธนาคารต้องมี 10–15 หลัก' });
       return;
     }
     const current = read().bibCounters;
@@ -524,6 +443,7 @@ async function startServer() {
         promptPayId,
         accountName: clean(s.accountName, 150) || d.settings.accountName,
         bankLabel: clean(s.bankLabel, 80) || d.settings.bankLabel,
+        bankAccountNo,
         paymentTimeoutMinutes: Math.min(120, Math.max(5, Math.floor(Number(s.paymentTimeoutMinutes) || 15))),
       };
       for (const r of ROUTE_IDS) if (counters[r] !== undefined) d.bibCounters[r] = counters[r];
@@ -532,24 +452,30 @@ async function startServer() {
     res.json({ settings: read().settings, bibCounters: read().bibCounters });
   });
 
-  app.get('/api/slip-verifier-status', requireAdmin, (_req, res) => {
-    res.json(slipApiStatus());
+  app.get('/api/admin/payment-gateway', requireAdmin, (_req, res) => {
+    res.json(gatewayStatus());
   });
 
-  app.post('/api/slip-verifier-config', requireAdmin, smallJson, (req, res) => {
-    const { provider } = req.body || {};
-    const key = clean(req.body?.apiKey, 200);
-    const branch = clean(req.body?.branchId, 60);
+  app.post('/api/admin/payment-gateway', requireAdmin, smallJson, (req, res) => {
+    const admin = (req as any).admin.username as string;
+    if (req.body?.clear === true) {
+      mutate((d) => {
+        d.slipApi = { ...d.slipApi, omiseSecretKey: '' };
+      });
+      console.log(`[admin] ${admin} removed the Omise key`);
+      res.json(gatewayStatus());
+      return;
+    }
+    const key = String(req.body?.secretKey || '').trim();
+    if (!/^skey_(test_)?[A-Za-z0-9]{10,}$/.test(key)) {
+      res.status(400).json({ error: 'Omise Secret Key ต้องขึ้นต้นด้วย skey_ หรือ skey_test_' });
+      return;
+    }
     mutate((d) => {
-      const s = d.slipApi;
-      if (provider === 'EASYSLIP_API') Object.assign(s, { easySlipKey: key, thunderKey: '', slipOkKey: '', slipOkBranch: '' });
-      else if (provider === 'THUNDER_API') Object.assign(s, { thunderKey: key, easySlipKey: '', slipOkKey: '', slipOkBranch: '' });
-      else if (provider === 'SLIPOK_API') Object.assign(s, { slipOkKey: key, slipOkBranch: branch, easySlipKey: '', thunderKey: '' });
-      else if (provider === 'OMISE_PROMPTPAY_WEBHOOK') s.omiseSecretKey = key;
-      else if (provider === 'CLEAR') d.slipApi = {};
+      d.slipApi = { ...d.slipApi, omiseSecretKey: key };
     });
-    console.log(`[admin] ${(req as any).admin.username} changed slip API config (${provider})`);
-    res.json({ success: true, ...slipApiStatus() });
+    console.log(`[admin] ${admin} set the Omise key (${key.startsWith('skey_test_') ? 'test' : 'live'})`);
+    res.json(gatewayStatus());
   });
 
   // Any other /api path is a 404 (prevents the SPA fallback from answering API calls).
